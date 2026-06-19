@@ -6,22 +6,18 @@ Sejiwa Agency manajemen proyek adalah platform manajemen proyek yang dibuat untu
 
 ## 🚀 Fitur Utama
 
-1. **Isolasi Data Perusahaan (Multi-Tenancy)**
-   * Pemisahan data yang aman antar perusahaan (`Company`) menggunakan isolasi berbasis `companyId`.
-   * Setiap tiket, komentar, dan akun pengguna terikat secara ketat pada perusahaannya masing-masing.
-
-2. **Role-Based Access Control (RBAC)**
+1. **Role-Based Access Control (RBAC)**
    * Pembagian akses yang terpusat melalui [permissions.ts](file:///c:/Learning/Next/sadhana/src/lib/permissions.ts).
    * Mendukung 2 tingkatan peran pengguna:
      * 👑 **OWNER**: Memiliki kendali penuh atas perusahaan, manajemen anggota tim, pengelolaan tiket proyek, serta akses penuh ke halaman AI Insights.
      * 👥 **MEMBER**: Dapat membuat, memperbarui status tiket proyek, dan memberikan komentar pada tiket tim manapun untuk menunjang kolaborasi.
 
-3. **Kanban Task Board (Drag & Drop)**
+2. **Kanban Task Board (Drag & Drop)**
    * Manajemen siklus tugas secara visual dengan status: `TODO`, `IN_PROGRESS`, `REVIEW`, `PRIORITY`, dan `DONE`.
    * Drag-and-drop interaktif bertenaga `@dnd-kit`.
    * Detail tiket yang kaya termasuk deadline, penanggung jawab (assignee), dan utas komentar terintegrasi.
 
-4. **AI Insights (Integrasi Gemini AI)**
+3. **AI Insights (Integrasi Gemini AI)**
    * Halaman asisten AI khusus (**AI Insights**) di `/dashboard/ai` yang ditenagai oleh Gemini AI (`gemini-2.5-flash`).
    * Membantu menganalisis produktivitas tim, memberikan saran prioritas tiket, serta berinteraksi secara real-time menggunakan percakapan cerdas yang kontekstual.
 
