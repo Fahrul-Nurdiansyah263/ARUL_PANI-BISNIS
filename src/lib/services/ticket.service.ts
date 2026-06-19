@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { hasPermission, canViewAllDivisions } from "@/lib/permissions";
+import { hasPermission } from "@/lib/permissions";
 import {
   createTicketSchema,
   updateTicketSchema,
@@ -17,7 +17,6 @@ const ticketInclude = {
       name: true,
       role: true,
       avatarUrl: true,
-      division: { select: { id: true, name: true, description: true } },
     },
   },
   createdBy: {
@@ -25,10 +24,8 @@ const ticketInclude = {
       id: true,
       name: true,
       role: true,
-      division: { select: { id: true, name: true, description: true } },
     },
   },
-  division: { select: { id: true, name: true } },
   _count: { select: { comments: true } },
 } as const;
 
@@ -36,7 +33,7 @@ interface SessionUser {
   id: string;
   role: string;
   companyId: string;
-  divisionId: string | null;
+  divisionId?: string | null;
 }
 
 /**
@@ -55,13 +52,6 @@ export async function listTickets(
     companyId: user.companyId,
   };
 
-  // SUPER_ADMIN bisa lihat semua, yang lain filter per divisi
-  if (!canViewAllDivisions(user.role)) {
-    where.divisionId = user.divisionId;
-  } else if (options.divisionId) {
-    where.divisionId = options.divisionId;
-  }
-
   const [tickets, total] = await Promise.all([
     db.ticket.findMany({
       where,
@@ -75,6 +65,7 @@ export async function listTickets(
 
   return { tickets, total };
 }
+
 
 /**
  * Create ticket baru dengan validasi.
@@ -94,7 +85,6 @@ export async function createTicket(input: unknown, user: SessionUser) {
       description: data.description,
       assigneeId: data.assigneeId || null,
       deadline: data.deadline ? new Date(data.deadline) : null,
-      divisionId: data.divisionId,
       companyId: user.companyId,
       createdById: user.id,
     },

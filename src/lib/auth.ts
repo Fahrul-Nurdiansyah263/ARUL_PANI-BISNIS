@@ -22,7 +22,7 @@ export const authOptions: NextAuthOptions = {
 
         const user = await db.user.findUnique({
           where: { email: credentials.email },
-          include: { company: true, division: true },
+          include: { company: true },
         })
 
         if (!user || !user.isActive) return null
@@ -36,7 +36,6 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           role: user.role,
           companyId: user.companyId,
-          divisionId: user.divisionId,
         }
       },
     }),
@@ -47,7 +46,6 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id
         token.role = user.role
         token.companyId = user.companyId
-        token.divisionId = user.divisionId
       }
       return token
     },
@@ -56,7 +54,6 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string
         session.user.role = token.role as string
         session.user.companyId = token.companyId as string
-        session.user.divisionId = token.divisionId as string | null
       }
       return session
     },

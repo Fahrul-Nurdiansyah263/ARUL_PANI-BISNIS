@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sadhana — Discipline Your Workflow",
+  title: "Sejiwa — Project Management untuk Agency",
   description:
-    "Platform manajemen tugas dan daily report untuk tim perusahaan. Kelola ticket, track progress, dan dapatkan AI insights.",
+    "Platform manajemen proyek untuk Sejiwa Agency. Kelola ticket, track progress tim, dan dapatkan AI insights.",
 };
 
 export default function RootLayout({
@@ -27,9 +27,10 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased` }
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col" >
         <Providers>{children}</Providers>
       </body>
     </html>

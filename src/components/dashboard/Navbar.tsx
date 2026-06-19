@@ -13,6 +13,11 @@ interface NavbarProps {
   onMenuToggle: () => void
 }
 
+const roleLabel: Record<string, string> = {
+  OWNER: 'Owner',
+  MEMBER: 'Anggota Tim',
+}
+
 export default function Navbar({ user, onMenuToggle }: NavbarProps) {
   return (
     <header className="h-14 border-b bg-card px-4 sm:px-6 flex items-center justify-between">
@@ -30,7 +35,9 @@ export default function Navbar({ user, onMenuToggle }: NavbarProps) {
         </button>
         <div className="text-sm text-right hidden sm:block">
           <p className="font-medium leading-none">{user.name}</p>
-          <p className="text-muted-foreground text-xs mt-0.5">{user.role}</p>
+          <p className="text-muted-foreground text-xs mt-0.5">
+            {roleLabel[user.role] ?? user.role}
+          </p>
         </div>
         <Button
           variant="ghost"

@@ -52,7 +52,7 @@ export default function RegisterPage() {
             <input
               type="text"
               className="w-full mt-1 px-3 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              placeholder="PT Sadhana Indonesia"
+              placeholder="Sejiwa Agency"
               value={form.companyName}
               onChange={(e) => setForm({ ...form, companyName: e.target.value })}
               required

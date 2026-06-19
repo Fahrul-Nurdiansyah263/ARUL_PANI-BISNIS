@@ -60,14 +60,12 @@ const COLUMNS: { id: TicketStatus; label: string }[] = [
 
 interface Props {
   companyId: string;
-  divisionId: string | null;
   role: string;
   userId: string;
 }
 
 export default function TicketBoard({
   companyId,
-  divisionId,
   role,
   userId,
 }: Props) {
@@ -107,10 +105,8 @@ export default function TicketBoard({
   const fetchTickets = useCallback(async () => {
     try {
       setError(null);
-      const queryParams = new URLSearchParams();
-      if (divisionId) queryParams.append("divisionId", divisionId);
-      queryParams.append("limit", "100");
-      const res = await fetch(`/api/tickets?${queryParams.toString()}`);
+      // Ambil semua tiket dalam company — tidak difilter per divisi
+      const res = await fetch(`/api/tickets?limit=100`);
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
@@ -118,7 +114,6 @@ export default function TicketBoard({
       }
 
       const json = await res.json();
-      // API sekarang return { data, pagination }
       setTickets(Array.isArray(json) ? json : json.data ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal memuat tickets");
@@ -126,7 +121,7 @@ export default function TicketBoard({
     } finally {
       setLoading(false);
     }
-  }, [divisionId]);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -145,9 +140,20 @@ export default function TicketBoard({
     if (!over) return;
 
     const ticketId = active.id as string;
-    const newStatus = over.id as TicketStatus;
 
-    if (!COLUMNS.find((c) => c.id === newStatus)) return;
+    // over.id bisa berupa column ID atau ticket ID
+    // Jika drop di area kosong kolom → over.id = column ID (TicketStatus)
+    // Jika drop di atas card lain → over.id = ticket ID, cari status dari ticket tsb
+    let newStatus: TicketStatus;
+    const isColumn = COLUMNS.find((c) => c.id === over.id);
+    if (isColumn) {
+      newStatus = over.id as TicketStatus;
+    } else {
+      // over.id adalah ticket ID — ambil status dari ticket target
+      const overTicket = tickets.find((t) => t.id === over.id);
+      if (!overTicket) return;
+      newStatus = overTicket.status;
+    }
 
     const ticket = tickets.find((t) => t.id === ticketId);
     if (!ticket || ticket.status === newStatus) return;
@@ -245,7 +251,6 @@ export default function TicketBoard({
       {showModal && (
         <CreateTicketModal
           companyId={companyId}
-          divisionId={divisionId}
           role={role}
           onClose={() => setShowModal(false)}
           onCreated={() => {

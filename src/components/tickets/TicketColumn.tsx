@@ -10,7 +10,7 @@ const colorMap: Record<TicketStatus, string> = {
   TODO: 'bg-slate-100 dark:bg-slate-800',
   IN_PROGRESS: 'bg-blue-50 dark:bg-blue-950',
   REVIEW: 'bg-yellow-50 dark:bg-yellow-950',
-  PRIORITY: 'bg-purple-50 dark:bg-purple-950',
+  PRIORITY: 'bg-red-50 dark:bg-red-950',
   DONE: 'bg-green-50 dark:bg-green-950',
 }
 
@@ -18,7 +18,7 @@ const dotMap: Record<TicketStatus, string> = {
   TODO: 'bg-slate-400',
   IN_PROGRESS: 'bg-blue-500',
   REVIEW: 'bg-yellow-500',
-  PRIORITY: 'bg-purple-500',
+  PRIORITY: 'bg-red-500',
   DONE: 'bg-green-500',
 }
 

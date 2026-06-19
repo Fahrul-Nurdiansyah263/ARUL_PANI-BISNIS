@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { X, MessageSquare, Send, Calendar, User, Tag, Clock } from 'lucide-react'
+import { X, MessageSquare, Send, Calendar, User } from 'lucide-react'
 import { hasPermission } from '@/lib/permissions'
 import { Ticket } from './TicketBoard'
 import { cn } from '@/lib/utils'
@@ -32,7 +32,7 @@ const statusMap = {
   TODO: 'bg-slate-100 text-slate-700 border-slate-300',
   IN_PROGRESS: 'bg-amber-100 text-amber-800 border-amber-300',
   REVIEW: 'bg-indigo-100 text-indigo-800 border-indigo-300',
-  PRIORITY: 'bg-purple-100 text-purple-800 border-purple-300',
+  PRIORITY: 'bg-red-100 text-red-700 border-red-300',
   DONE: 'bg-emerald-100 text-emerald-800 border-emerald-300',
 }
 
@@ -48,11 +48,8 @@ export default function TicketDetailModal({
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
-  // Menentukan apakah user saat ini punya izin untuk berkomentar
-  const canComment =
-    hasPermission(currentUser.role, 'canCommentOnAnyTicket') ||
-    (hasPermission(currentUser.role, 'canCommentOnAssignedOnly') &&
-      ticket.assignee?.id === currentUser.id)
+  // Semua anggota Sejiwa Agency bisa berkomentar di tiket manapun
+  const canComment = hasPermission(currentUser.role, 'canCommentOnAnyTicket')
 
   // Fetch comments
   useEffect(() => {
@@ -138,75 +135,57 @@ export default function TicketDetailModal({
         {/* Scrollable Container */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           
-          {/* Metadata Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted/40 p-4 rounded-xl border border-border/40 text-sm">
-            <div className="space-y-3.5">
-              <div className="flex items-start gap-2.5 text-muted-foreground">
-                <User size={16} className="text-muted-foreground/70 mt-0.5" />
-                <div className="flex flex-col">
-                  <span>Pembuat: <strong className="text-foreground font-semibold">{ticket.createdBy.name}</strong></span>
-                  {ticket.createdBy.position && (
-                    <span className="text-xs text-foreground/80 font-medium mt-0.5">
-                      {ticket.createdBy.position}
-                    </span>
-                  )}
-                  <span className="text-[10px] text-muted-foreground/85 font-semibold mt-0.5 tracking-wide uppercase">
-                    {ticket.createdBy.role} • {ticket.createdBy.division?.name || 'Semua Divisi'}
-                  </span>
-                  {ticket.createdBy.division?.description && (
-                    <span className="text-[11px] text-muted-foreground/75 italic mt-0.5">
-                      {ticket.createdBy.division.description}
-                    </span>
-                  )}
-                </div>
+          {/* Metadata */}
+          <div className="flex flex-col sm:flex-row gap-3 bg-muted/40 p-4 rounded-xl border border-border/40 text-sm">
+            {/* Pembuat */}
+            <div className="flex items-center gap-2.5 flex-1">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary border border-primary/20 shrink-0">
+                {ticket.createdBy.name[0]}
               </div>
-              <div className="flex items-start gap-2.5 text-muted-foreground">
-                <Tag size={16} className="text-muted-foreground/70 mt-0.5" />
-                <div className="flex flex-col">
-                  <span>Penerima Tugas: <strong className="text-foreground font-semibold">{ticket.assignee?.name || 'Belum ditugaskan'}</strong></span>
-                  {ticket.assignee && (
-                    <>
-                      {ticket.assignee.position && (
-                        <span className="text-xs text-foreground/80 font-medium mt-0.5">
-                          {ticket.assignee.position}
-                        </span>
-                      )}
-                      <span className="text-[10px] text-muted-foreground/85 font-semibold mt-0.5 tracking-wide uppercase">
-                        {ticket.assignee.role} • {ticket.assignee.division?.name || 'Semua Divisi'}
-                      </span>
-                      {ticket.assignee.division?.description && (
-                        <span className="text-[11px] text-muted-foreground/75 italic mt-0.5">
-                          {ticket.assignee.division.description}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-center gap-2.5 text-muted-foreground">
-                <Calendar size={16} className="text-muted-foreground/70" />
-                <span>
-                  Deadline:{' '}
-                  <strong className="text-foreground font-semibold">
-                    {ticket.deadline
-                      ? new Date(ticket.deadline).toLocaleDateString('id-ID', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                        })
-                      : 'Tidak ada'}
-                  </strong>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide font-medium">Pembuat</span>
+                <span className="font-semibold text-foreground truncate">{ticket.createdBy.name}</span>
+                <span className="text-xs text-muted-foreground">
+                  {ticket.createdBy.position}
                 </span>
               </div>
-              <div className="flex items-center gap-2.5 text-muted-foreground">
-                <Clock size={16} className="text-muted-foreground/70" />
-                <span>
-                  Divisi:{' '}
-                  <strong className="text-foreground font-semibold">
-                    {ticket.division?.name || ticket.divisionId}
-                  </strong>
+            </div>
+
+            <div className="w-px bg-border/60 hidden sm:block" />
+
+            {/* Ditugaskan ke */}
+            <div className="flex items-center gap-2.5 flex-1">
+              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground border border-border shrink-0">
+                {ticket.assignee ? ticket.assignee.name[0] : '?'}
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide font-medium">Ditugaskan ke</span>
+                <span className="font-semibold text-foreground truncate">
+                  {ticket.assignee?.name || 'Belum ditugaskan'}
+                </span>
+                {ticket.assignee && (
+                  <span className="text-xs text-muted-foreground">
+                    {ticket.assignee.position}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="w-px bg-border/60 hidden sm:block" />
+
+            {/* Deadline */}
+            <div className="flex items-center gap-2.5">
+              <Calendar size={16} className="text-muted-foreground/70 shrink-0" />
+              <div className="flex flex-col">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide font-medium">Deadline</span>
+                <span className="font-semibold text-foreground" suppressHydrationWarning>
+                  {ticket.deadline
+                    ? new Date(ticket.deadline).toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })
+                    : 'Tidak ada'}
                 </span>
               </div>
             </div>
@@ -251,7 +230,7 @@ export default function TicketDetailModal({
                     <div className="space-y-1 flex-1">
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-foreground">{comment.user.name}</span>
-                        <span className="text-[11px] text-muted-foreground">
+                        <span className="text-[11px] text-muted-foreground" suppressHydrationWarning>
                           {new Date(comment.createdAt).toLocaleString('id-ID', {
                             dateStyle: 'medium',
                             timeStyle: 'short',
@@ -298,9 +277,7 @@ export default function TicketDetailModal({
               </form>
             ) : (
               <div className="text-xs bg-amber-500/10 text-amber-600 dark:text-amber-500 px-4 py-3 rounded-xl border border-amber-500/20 text-center font-medium">
-                {hasPermission(currentUser.role, 'canCommentOnAssignedOnly')
-                  ? 'Hanya penerima tugas (assignee) yang dapat mengomentari tiket ini.'
-                  : 'Anda tidak memiliki izin untuk mengomentari tiket di divisi/proyek ini.'}
+                Anda tidak memiliki izin untuk mengomentari tiket ini.
               </div>
             )}
           </div>

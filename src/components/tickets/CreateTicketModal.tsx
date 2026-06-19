@@ -1,14 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
-import { hasPermission } from '@/lib/permissions'
-
-interface Division {
-  id: string
-  name: string
-}
 
 interface User {
   id: string
@@ -18,15 +12,12 @@ interface User {
 
 interface Props {
   companyId: string
-  divisionId: string | null
   role: string
   onClose: () => void
   onCreated: () => void
 }
 
 export default function CreateTicketModal({
-  companyId,
-  divisionId,
   role,
   onClose,
   onCreated,
@@ -36,41 +27,21 @@ export default function CreateTicketModal({
     description: '',
     deadline: '',
     assigneeId: '',
-    selectedDivisionId: divisionId || '',
   })
-  const [divisions, setDivisions] = useState<Division[]>([])
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const canViewAllDivisions = hasPermission(role, 'canViewAllDivisions')
-
-  // Load divisi kalau SUPER_ADMIN
   useEffect(() => {
-    if (canViewAllDivisions) {
-      fetch('/api/divisions')
-        .then((r) => {
-          if (!r.ok) throw new Error('Gagal memuat divisi')
-          return r.json()
-        })
-        .then((json) => setDivisions(Array.isArray(json) ? json : json.data ?? []))
-        .catch((err) => setError(err.message))
-    }
-  }, [canViewAllDivisions])
-
-  // Load users berdasarkan divisi yang dipilih
-  useEffect(() => {
-    if (!form.selectedDivisionId) return
-    fetch(`/api/users?divisionId=${form.selectedDivisionId}`)
+    fetch('/api/users?limit=100')
       .then((r) => {
         if (!r.ok) throw new Error('Gagal memuat user')
         return r.json()
       })
       .then((json) => setUsers(Array.isArray(json) ? json : json.data ?? []))
       .catch((err) => setError(err.message))
-  }, [form.selectedDivisionId])
+  }, [])
 
-  // Close on Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
@@ -81,7 +52,6 @@ export default function CreateTicketModal({
 
   const handleSubmit = async () => {
     if (!form.title) return setError('Title wajib diisi')
-    if (!form.selectedDivisionId) return setError('Pilih divisi dulu')
     setLoading(true)
     setError('')
 
@@ -94,7 +64,6 @@ export default function CreateTicketModal({
           description: form.description,
           deadline: form.deadline || null,
           assigneeId: form.assigneeId || null,
-          divisionId: form.selectedDivisionId,
         }),
       })
 
@@ -116,7 +85,6 @@ export default function CreateTicketModal({
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
       onClick={(e) => {
-        // Close when clicking backdrop
         if (e.target === e.currentTarget) onClose()
       }}
     >
@@ -129,27 +97,6 @@ export default function CreateTicketModal({
         </div>
 
         <div className="space-y-4">
-          {/* Pilih Divisi — hanya yang bisa lihat semua divisi */}
-          {canViewAllDivisions && (
-            <div>
-              <label className="text-sm font-medium">Divisi *</label>
-              <select
-                className="w-full mt-1 px-3 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                value={form.selectedDivisionId}
-                onChange={(e) =>
-                  setForm({ ...form, selectedDivisionId: e.target.value, assigneeId: '' })
-                }
-              >
-                <option value="">Pilih divisi...</option>
-                {divisions.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
           <div>
             <label className="text-sm font-medium">Judul *</label>
             <input
@@ -172,14 +119,12 @@ export default function CreateTicketModal({
             />
           </div>
 
-          {/* Assignee */}
           <div>
             <label className="text-sm font-medium">Assign ke</label>
             <select
               className="w-full mt-1 px-3 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               value={form.assigneeId}
               onChange={(e) => setForm({ ...form, assigneeId: e.target.value })}
-              disabled={!form.selectedDivisionId}
             >
               <option value="">Pilih assignee...</option>
               {users.map((u) => (

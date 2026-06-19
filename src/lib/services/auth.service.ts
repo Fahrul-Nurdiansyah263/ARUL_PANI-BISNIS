@@ -4,7 +4,7 @@ import { registerSchema } from "@/lib/validations/auth";
 import { ServiceError } from "./ticket.service";
 
 /**
- * Register company + super admin user.
+ * Register agency + owner user (pendaftar pertama = OWNER).
  */
 export async function registerCompany(input: unknown) {
   const data = registerSchema.parse(input);
@@ -53,7 +53,7 @@ export async function registerCompany(input: unknown) {
           name: data.name,
           email: data.email,
           passwordHash,
-          role: "SUPER_ADMIN",
+          role: "OWNER",
         },
       },
     },

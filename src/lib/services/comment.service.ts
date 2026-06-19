@@ -1,5 +1,4 @@
 import { db } from "@/lib/db";
-import { canCommentOnTicket } from "@/lib/permissions";
 import { createCommentSchema } from "@/lib/validations/comment";
 import { ServiceError } from "@/lib/services/ticket.service";
 
@@ -7,7 +6,6 @@ interface SessionUser {
   id: string;
   role: string;
   companyId: string;
-  divisionId: string | null;
 }
 
 /**
@@ -68,13 +66,7 @@ export async function createComment(
     throw new ServiceError("Anda tidak memiliki akses ke ticket ini", 403);
   }
 
-  // Cek perizinan berdasarkan role & assignment
-  if (!canCommentOnTicket(user, ticket)) {
-    throw new ServiceError(
-      "Anda tidak memiliki izin untuk mengomentari tiket ini",
-      403,
-    );
-  }
+  // Semua anggota Sejiwa Agency bisa berkomentar di tiket manapun
 
   return await db.ticketComment.create({
     data: {

@@ -19,7 +19,6 @@ export default async function TicketsPage() {
       </div>
       <TicketBoard
         companyId={session.user.companyId}
-        divisionId={session.user.divisionId}
         role={session.user.role}
         userId={session.user.id}
       />

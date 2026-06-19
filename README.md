@@ -1,36 +1,29 @@
-# 🏢 Sadhana — Discipline Your Workflow
+# 🏢 Sejiwa Agency — Project Management Platform
 
-Sadhana is a multi-tenant workspace, task, and daily reporting management application (Kanban Task Board & Daily Reporting) equipped with **Role-Based Access Control (RBAC)** and **Gemini AI Integration**. This system is designed to streamline team workflows, visually track task progression, and intelligently analyze team performance using artificial intelligence.
+Sejiwa Agency manajemen proyek adalah platform manajemen proyek yang dibuat untuk mempermudah sejiwa creative untuk menjalankan proyek proyek yang ada di sejiwa. Dilengkapi dengan **Role-Based Access Control (RBAC)** dan integrasi **Gemini AI**, sistem ini menyederhanakan pelacakan tugas, pembagian peran tim, dan analisis kinerja proyek secara cerdas.
 
 ---
 
-## 🚀 Key Features
+## 🚀 Fitur Utama
 
-1. **Multi-Tenancy (Company Isolation)**
-   * Complete data isolation between different companies (`Company`).
-   * Every task, division, daily report, and user is strictly bound to their respective `companyId`.
+1. **Isolasi Data Perusahaan (Multi-Tenancy)**
+   * Pemisahan data yang aman antar perusahaan (`Company`) menggunakan isolasi berbasis `companyId`.
+   * Setiap tiket, komentar, dan akun pengguna terikat secara ketat pada perusahaannya masing-masing.
 
 2. **Role-Based Access Control (RBAC)**
-   * Centralized permission checks defined in [permissions.ts](file:///c:/Learning/Next/sadhana/src/lib/permissions.ts).
-   * Supports 4 distinct roles:
-     * 👑 **Super Admin**: Full company authority, creates divisions, manages all users, and accesses analytics and AI Insights.
-     * 🛡️ **Admin**: Manages users within their assigned division, manages tickets, accesses analytics, and views AI Insights.
-     * 👥 **Employee**: Manages tickets (create and update status), comments on all tickets, and accesses analytics.
-     * 🎓 **Intern**: Updates the status of tickets assigned specifically to them and comments only on those assigned tickets.
+   * Pembagian akses yang terpusat melalui [permissions.ts](file:///c:/Learning/Next/sadhana/src/lib/permissions.ts).
+   * Mendukung 2 tingkatan peran pengguna:
+     * 👑 **OWNER**: Memiliki kendali penuh atas perusahaan, manajemen anggota tim, pengelolaan tiket proyek, serta akses penuh ke halaman AI Insights.
+     * 👥 **MEMBER**: Dapat membuat, memperbarui status tiket proyek, dan memberikan komentar pada tiket tim manapun untuk menunjang kolaborasi.
 
 3. **Kanban Task Board (Drag & Drop)**
-   * Visual task lifecycle management with statuses: `TODO`, `IN_PROGRESS`, `REVIEW`, and `DONE`.
-   * Interactive drag-and-drop state changes powered by `@dnd-kit`.
-   * Detailed ticket previews, deadline scheduling, assignees, and nested comment threads.
+   * Manajemen siklus tugas secara visual dengan status: `TODO`, `IN_PROGRESS`, `REVIEW`, `PRIORITY`, dan `DONE`.
+   * Drag-and-drop interaktif bertenaga `@dnd-kit`.
+   * Detail tiket yang kaya termasuk deadline, penanggung jawab (assignee), dan utas komentar terintegrasi.
 
-4. **Daily Reporting**
-   * Users can submit a daily summary of their work activities and document any blockers they encounter for team transparency.
-
-5. **AI Insights & Summaries (Gemini AI Integration)**
-   * Planned integration with Google Gemini AI to automatically generate weekly digests (`WEEKLY_DIGEST`), team performance analyses (`PERFORMANCE`), blocker/anomaly detection (`ANOMALY`), and priority recommendations (`PRIORITY`).
-
-6. **System Notifications**
-   * Real-time notifications for ticket assignments and critical project updates.
+4. **AI Insights (Integrasi Gemini AI)**
+   * Halaman asisten AI khusus (**AI Insights**) di `/dashboard/ai` yang ditenagai oleh Gemini AI (`gemini-2.5-flash`).
+   * Membantu menganalisis produktivitas tim, memberikan saran prioritas tiket, serta berinteraksi secara real-time menggunakan percakapan cerdas yang kontekstual.
 
 ---
 
@@ -42,128 +35,123 @@ Sadhana is a multi-tenant workspace, task, and daily reporting management applic
 * **Styling & UI**: [TailwindCSS v4](https://tailwindcss.com/), [Base UI](https://base-ui.com/), [Shadcn UI](https://ui.shadcn.com/), [Lucide Icons](https://lucide.dev/)
 * **Schema Validation**: [Zod](https://zod.dev/)
 * **Interactivity**: [dnd-kit](https://dndkit.com/) (Drag & Drop)
-* **AI Provider**: [Google Generative AI](https://github.com/google/generative-ai-js) (Gemini SDK)
+* **AI SDK**: [Google Generative AI](https://github.com/google/generative-ai-js) (Gemini SDK)
 
 ---
 
-## ⚙️ System Prerequisites
+## ⚙️ Persyaratan Sistem
 
-Make sure you have the following installed in your development environment:
-* **Node.js** v20 or newer
-* **PostgreSQL** database (local or cloud-hosted instance like Supabase)
+Sebelum menjalankan aplikasi, pastikan Anda telah menginstal:
+* **Node.js** v20 atau versi terbaru
+* Database **PostgreSQL** (bisa menggunakan instalasi lokal atau cloud-hosted seperti Supabase)
 
 ---
 
-## 🚦 Getting Started
+## 🚦 Memulai Penggunaan
 
-Follow these steps to run Sadhana locally on your machine:
+Ikuti langkah-langkah berikut untuk menjalankan Sejiwa Agency di komputer lokal Anda:
 
-### 1. Clone the Repository & Install Dependencies
+### 1. Clone Repository & Instal Dependensi
 ```bash
-# Clone the repository (replace with your repository URL)
-git clone <repository-url> sadhana
-cd sadhana
+# Clone repository
+git clone <repository-url> sejiwa
+cd sejiwa
 
-# Install dependency packages
+# Instal paket dependensi
 npm install
 ```
 
-### 2. Configure Environment Variables
-Copy or create a `.env` file in the root of the project directory and supply the following variables:
+### 2. Konfigurasi Environment Variables
+Buat file bernama `.env` di direktori utama (root) proyek Anda dan tambahkan variabel berikut:
 ```env
-# Connection URL for your PostgreSQL database
-DATABASE_URL="postgresql://username:password@localhost:5432/sadhana_db"
+# URL koneksi database PostgreSQL Anda
+DATABASE_URL="postgresql://username:password@localhost:5432/sejiwa_db"
 
-# Secret key used by NextAuth to encrypt and sign JWT tokens
-NEXTAUTH_SECRET="your-random-secret-string-here"
+# Kunci rahasia untuk enkripsi token NextAuth
+NEXTAUTH_SECRET="kunci-rahasia-acak-anda-di-sini"
 
-# Base URL of the application
+# URL dasar aplikasi
 NEXTAUTH_URL="http://localhost:3000"
 
-# Google Gemini API key (for AI Insights generation)
-GEMINI_API_KEY="AIzaSy..."
+# Kunci API Google Gemini (untuk fitur AI Insights)
+GEMINI_API_KEY="..."
 ```
 
-### 3. Run Database Migrations & Seeding
-Sync the Prisma schema with your database and run the seeder script to populate seed data (companies, divisions, tickets, and demo users):
+### 3. Migrasi Database & Seeding
+Singkronkan skema Prisma dengan database Anda dan jalankan skrip seeding untuk mengisi data demo awal (perusahaan, pengguna, dan tiket awal):
 ```bash
-# Run database migrations
+# Jalankan migrasi database
 npx prisma migrate dev --name init
 
-# Seed the database
+# Isi database dengan data demo
 npx prisma db seed
 ```
 
-### 4. Launch the Application
-Run the local development server:
+### 4. Jalankan Aplikasi
+Jalankan server pengembangan lokal:
 ```bash
 npm run dev
 ```
-Open your browser and navigate to [http://localhost:3000](http://localhost:3000). The middleware will automatically redirect you to the `/login` page if you are not authenticated.
+Buka browser Anda dan akses [http://localhost:3000](http://localhost:3000). Aplikasi akan otomatis mengarahkan Anda ke halaman `/login` jika Anda belum masuk.
 
 ---
 
-## 🔑 Demo Accounts (Seeded)
+## 🔑 Akun Demo (Tersedia dari Seeding)
 
-After successfully running `npx prisma db seed`, you can log into the system using the following credentials (all accounts use the password: **`password123`**):
+Semua akun demo di bawah ini menggunakan kata sandi default: **`password123`**:
 
-| User Name | Email | Role | Division Scope |
+| Nama Pengguna | Email | Peran | Jabatan |
 | :--- | :--- | :--- | :--- |
-| **Super Admin** | `superadmin@sadhana.com` | `SUPER_ADMIN` | Global (Cross-Division) |
-| **Admin Engineering** | `admin.eng@sadhana.com` | `ADMIN` | Engineering |
-| **Admin Marketing** | `admin.mkt@sadhana.com` | `ADMIN` | Marketing |
-| **Budi Santoso** | `budi@sadhana.com` | `EMPLOYEE` | Engineering |
-| **Sari Dewi** | `sari@sadhana.com` | `EMPLOYEE` | Marketing |
-| **Andi Pratama** | `andi@sadhana.com` | `INTERN` | Engineering |
-| **Rina Kusuma** | `rina@sadhana.com` | `INTERN` | Design |
+| **Fahrul Nurdiansyah** | `fahrul@sejiwa.agency` | `OWNER` | Creative Director |
+| **Rina Kusuma** | `rina@sejiwa.agency` | `MEMBER` | Branding |
+| **Budi Santoso** | `budi@sejiwa.agency` | `MEMBER` | Content Writer |
+| **Andi Pratama** | `andi@sejiwa.agency` | `MEMBER` | Frontend Developer |
+| **Sari Dewi** | `sari@sejiwa.agency` | `MEMBER` | Social Media |
+| **Rizky Pratama** | `rizky@sejiwa.agency` | `MEMBER` | Graphic Designer |
+| **Dewi Lestari** | `dewi@sejiwa.agency` | `MEMBER` | Copywriter |
 
 ---
 
-## 🛡️ Permission Matrix (RBAC permissions)
+## 🛡️ Matriks Izin Akses (RBAC)
 
-The authorization system is centrally managed in [permissions.ts](file:///c:/Learning/Next/sadhana/src/lib/permissions.ts). Here is an overview of the access levels:
+Sistem perizinan dikelola secara terpusat di [permissions.ts](file:///c:/Learning/Next/sadhana/src/lib/permissions.ts). Berikut adalah pembagian hak aksesnya:
 
-| Feature / Action | SUPER_ADMIN | ADMIN | EMPLOYEE | INTERN | Notes / Details |
-| :--- | :---: | :---: | :---: | :---: | :--- |
-| **Create Ticket** | ✅ | ✅ | ✅ | ❌ | Allowed for all non-intern roles |
-| **Delete Ticket** | ✅ | ✅ | ❌ | ❌ | Restricted to Admins and Super Admins |
-| **Update Ticket** | ✅ | ✅ | ✅ | ✅ | Every role can update ticket details & status |
-| **Ticket Comments** | ✅ (All) | ✅ (All) | ✅ (All) | ⚠️ (Restricted) | Interns can only comment on tickets assigned to them |
-| **Manage Divisions** | ✅ | ❌ | ❌ | ❌ | Limited to Super Admin level |
-| **Manage Users** | ✅ | ✅ | ❌ | ❌ | Ability to invite or edit active status of users |
-| **View All Divisions** | ✅ | ❌ | ❌ | ❌ | Super Admin can inspect cross-division data |
-| **View Analytics** | ✅ | ✅ | ✅ | ❌ | Statistical reports on team progress |
-| **View AI Insights** | ✅ | ✅ | ❌ | ❌ | Smart AI-powered weekly digest/anomaly reviews |
+| Fitur / Tindakan | OWNER | MEMBER | Keterangan / Detail |
+| :--- | :---: | :---: | :--- |
+| **Membuat Tiket** | ✅ | ✅ | Baik Owner maupun Member bisa membuat tiket baru |
+| **Menghapus Tiket** | ✅ | ✅ | Memberikan kebebasan pengelolaan tiket penuh kepada seluruh tim |
+| **Memperbarui Tiket** | ✅ | ✅ | Mengubah status, memindahkan kolom, mengedit detail tiket |
+| **Menulis Komentar** | ✅ | ✅ | Berdiskusi di kolom komentar pada tiket manapun |
+| **Mengelola Divisi** | ✅ | ❌ | Terbatas hanya untuk tingkat Owner |
+| **Mengelola Anggota** | ✅ | ❌ | Owner dapat mengundang, mengedit, atau menonaktifkan pengguna |
+| **Mengakses AI Insights** | ✅ | ✅ | Semua anggota tim dapat berkonsultasi dengan Sejiwa AI |
 
 ---
 
-## 📂 Project Folder Structure
-
-Here is a structural overview of the Sadhana application directories:
+## 📂 Struktur Folder Proyek
 
 ```
-sadhana/
-├── prisma/                 # Database schema configuration & seeding scripts
-│   ├── schema.prisma       # Prisma schema defining PostgreSQL models
-│   ├── seed.ts             # Seeder script setting up companies, divisions, users, and tasks
-│   └── migrations/         # History of database schema migrations
+sejiwa/
+├── prisma/                 # Skema database & script seeding
+│   ├── schema.prisma       # Skema utama database Prisma (PostgreSQL)
+│   ├── seed.ts             # Skrip seeding akun demo & tiket awal
+│   └── migrations/         # Riwayat migrasi skema database
 ├── src/
-│   ├── app/                # Next.js App Router (Routes & API endpoints)
-│   │   ├── (auth)/         # Authentication routes (login, register)
-│   │   ├── (dashboard)/    # Core dashboard pages & views
-│   │   └── api/            # API endpoints (/api/tickets, /api/divisions, etc.)
-│   ├── components/         # Reusable React components
-│   │   ├── dashboard/      # Navigation Sidebar, Navbar, and Dashboard shell components
-│   │   ├── tickets/        # Kanban board, Ticket cards, Create & Detail modals
-│   │   └── ui/             # Basic UI elements (buttons, inputs, dialogs, etc.)
-│   ├── lib/                # Config files & database helper functions
-│   │   ├── services/       # Service layer executing business logic (ticket, auth, etc.)
-│   │   ├── validations/    # Input request schemas using Zod validation
-│   │   ├── auth.ts         # NextAuth.js authentication configuration
-│   │   ├── db.ts           # PrismaClient database connection helper
-│   │   └── permissions.ts  # Centralized RBAC permissions & navigation setup
-│   ├── types/              # Global TypeScript declarations (extends NextAuth types)
-│   └── middleware.ts       # Route guard middleware inspecting JWT sessions
-├── package.json            # Application dependencies and package scripts
-└── tsconfig.json           # TypeScript configuration
+│   ├── app/                # Struktur Next.js App Router & API Route
+│   │   ├── (auth)/         # Halaman autentikasi (login, register)
+│   │   ├── (dashboard)/    # Halaman dashboard, tiket, dan AI
+│   │   └── api/            # API Route internal (/api/chat, /api/users, /api/tickets)
+│   ├── components/         # Komponen React reusable
+│   │   ├── dashboard/      # Layout dashboard, Sidebar, Navbar, dan AI Chat
+│   │   ├── tickets/        # Board Kanban, Card Tiket, Detail & Create Modal
+│   │   └── ui/             # Komponen dasar UI (button, dialog, textarea, dll.)
+│   ├── lib/                # Konfigurasi, helper database, dan service bisnis
+│   │   ├── services/       # Layer penanganan logika bisnis (auth, ticket, user)
+│   │   ├── auth.ts         # Konfigurasi NextAuth.js
+│   │   ├── db.ts           # Instance Prisma Client untuk koneksi database
+│   │   └── permissions.ts  # Definisi aturan hak akses (RBAC)
+│   ├── types/              # Deklarasi tipe TypeScript global
+│   └── middleware.ts       # Route guard middleware untuk otentikasi sesi JWT
+├── package.json            # Daftar dependensi aplikasi & script perintah npm
+└── tsconfig.json           # Konfigurasi proyek TypeScript
 ```

@@ -49,38 +49,34 @@ export default function TicketCard({ ticket, role, overlay, onClick }: Props) {
         </p>
       )}
 
-      {/* Info Creator & Assignee */}
+      {/* Info Pembuat & Assignee */}
       <div className="mb-3 pt-2 border-t border-dashed border-border/80 flex flex-col gap-1 text-[11px] text-muted-foreground">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="font-medium text-muted-foreground/80">Oleh:</span>
-          <span className="text-foreground/80 font-medium">
-            {ticket.createdBy.name}{' '}
-            <span className="text-[10px] text-muted-foreground font-normal">
-              ({ticket.createdBy.position || ticket.createdBy.role})
+          <span className="font-medium text-muted-foreground/80">Pembuat:</span>
+          <span className="text-foreground/80 font-medium">{ticket.createdBy.name}</span>
+          {ticket.createdBy.position && (
+            <span className="text-[10px] text-muted-foreground/70">
+              ({ticket.createdBy.position})
             </span>
-          </span>
+          )}
         </div>
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="font-medium text-muted-foreground/80">Untuk:</span>
+          <span className="font-medium text-muted-foreground/80">Ditugaskan:</span>
           <span className="text-foreground/80 font-medium">
             {ticket.assignee ? (
               <>
                 {ticket.assignee.name}{' '}
-                <span className="text-[10px] text-muted-foreground font-normal">
-                  ({ticket.assignee.position || ticket.assignee.role})
-                </span>
+                {ticket.assignee.position && (
+                  <span className="text-[10px] text-muted-foreground/70">
+                    ({ticket.assignee.position})
+                  </span>
+                )}
               </>
             ) : (
               'Belum ditugaskan'
             )}
           </span>
         </div>
-        {ticket.division && (
-          <div className="flex items-center gap-1.5">
-            <span className="font-medium text-muted-foreground/80">Divisi:</span>
-            <span className="text-foreground/80 font-medium">{ticket.division.name}</span>
-          </div>
-        )}
       </div>
 
       <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/40">
@@ -91,7 +87,7 @@ export default function TicketCard({ ticket, role, overlay, onClick }: Props) {
             </div>
           )}
           {ticket.deadline && (
-            <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+            <div className="flex items-center gap-1 text-[11px] text-muted-foreground" suppressHydrationWarning>
               <Calendar size={11} className="text-muted-foreground/70" />
               {new Date(ticket.deadline).toLocaleDateString('id-ID', {
                 day: 'numeric',

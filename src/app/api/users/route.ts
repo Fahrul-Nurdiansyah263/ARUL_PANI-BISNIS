@@ -11,11 +11,9 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { searchParams } = new URL(req.url);
-    const divisionId = searchParams.get("divisionId");
     const pagination = parsePagination(searchParams);
 
     const { users, total } = await listUsers(session.user.companyId, {
-      divisionId,
       ...pagination,
     });
 

@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -20,94 +18,40 @@ model Company {
   logoUrl   String?
   createdAt DateTime @default(now())
 
-  divisions     Division[]
-  users         User[]
-  invitations   Invitation[]
-  tickets       Ticket[]
-  aiSummaries   AiSummary[]
-}
-
-// ==================== DIVISION ====================
-model Division {
-  id          String   @id @default(cuid())
-  companyId   String
-  name        String
-  description String?
-  createdAt   DateTime @default(now())
-
-  company       Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  users         User[]
-  invitations   Invitation[]
-  tickets       Ticket[]
-  dailyReports  DailyReport[]
-  aiSummaries   AiSummary[]
+  users       User[]
+  tickets     Ticket[]
+  aiSummaries AiSummary[]
 }
 
 // ==================== USER ====================
 model User {
-  id            String    @id @default(cuid())
-  companyId     String
-  divisionId    String?
-  name          String
-  email         String    @unique
-  passwordHash  String
-  role          Role      @default(INTERN)
-  avatarUrl     String?
-  isActive      Boolean   @default(true)
-  position      String?
-  createdAt     DateTime  @default(now())
+  id           String   @id @default(cuid())
+  companyId    String
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(MEMBER)
+  avatarUrl    String?
+  isActive     Boolean  @default(true)
+  position     String?
+  createdAt    DateTime @default(now())
 
-  company           Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  division          Division?      @relation(fields: [divisionId], references: [id])
-  assignedTickets   Ticket[]       @relation("AssignedTickets")
-  createdTickets    Ticket[]       @relation("CreatedTickets")
-  ticketComments    TicketComment[]
-  dailyReports      DailyReport[]
-  notifications     Notification[]
-  invitationsSent   Invitation[]
-
-  accounts Account[]
-  sessions Session[]
+  company         Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  assignedTickets Ticket[]        @relation("AssignedTickets")
+  createdTickets  Ticket[]        @relation("CreatedTickets")
+  ticketComments  TicketComment[]
+  sessions        Session[]
 }
 
 enum Role {
-  SUPER_ADMIN
-  ADMIN
-  EMPLOYEE
-  INTERN
-}
-
-// ==================== INVITATION ====================
-model Invitation {
-  id          String           @id @default(cuid())
-  companyId   String
-  divisionId  String?
-  email       String
-  role        Role
-  token       String           @unique @default(cuid())
-  status      InvitationStatus @default(PENDING)
-  invitedById String
-  expiresAt   DateTime
-  createdAt   DateTime         @default(now())
-
-  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  division    Division? @relation(fields: [divisionId], references: [id])
-  invitedBy   User      @relation(fields: [invitedById], references: [id])
-
-  @@index([email, status])
-}
-
-enum InvitationStatus {
-  PENDING
-  ACCEPTED
-  EXPIRED
+  OWNER
+  MEMBER
 }
 
 // ==================== TICKET ====================
 model Ticket {
   id          String       @id @default(cuid())
   companyId   String
-  divisionId  String
   title       String
   description String?
   assigneeId  String?
@@ -118,12 +62,11 @@ model Ticket {
   updatedAt   DateTime     @updatedAt
 
   company   Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  division  Division        @relation(fields: [divisionId], references: [id])
   assignee  User?           @relation("AssignedTickets", fields: [assigneeId], references: [id])
   createdBy User            @relation("CreatedTickets", fields: [createdById], references: [id])
   comments  TicketComment[]
 
-  @@index([companyId, divisionId])
+  @@index([companyId])
   @@index([status])
   @@index([assigneeId])
 }
@@ -132,14 +75,8 @@ enum TicketStatus {
   TODO
   IN_PROGRESS
   REVIEW
+  PRIORITY
   DONE
-}
-
-enum Priority {
-  LOW
-  MEDIUM
-  HIGH
-  URGENT
 }
 
 // ==================== TICKET COMMENT ====================
@@ -154,36 +91,17 @@ model TicketComment {
   user   User   @relation(fields: [userId], references: [id])
 }
 
-// ==================== DAILY REPORT ====================
-model DailyReport {
-  id         String   @id @default(cuid())
-  userId     String
-  divisionId String
-  date       DateTime
-  content    String
-  blockers   String?
-  createdAt  DateTime @default(now())
-
-  user     User     @relation(fields: [userId], references: [id])
-  division Division @relation(fields: [divisionId], references: [id])
-
-  @@index([userId, date])
-  @@index([divisionId])
-}
-
 // ==================== AI SUMMARY ====================
 model AiSummary {
-  id           String      @id @default(cuid())
-  companyId    String
-  divisionId   String?
-  type         SummaryType
-  targetId     String?
-  targetType   String?
-  content      String
-  generatedAt  DateTime    @default(now())
+  id          String      @id @default(cuid())
+  companyId   String
+  type        SummaryType
+  targetId    String?
+  targetType  String?
+  content     String
+  generatedAt DateTime    @default(now())
 
-  company  Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  division Division? @relation(fields: [divisionId], references: [id])
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 }
 
 enum SummaryType {
@@ -193,43 +111,7 @@ enum SummaryType {
   PRIORITY
 }
 
-// ==================== NOTIFICATION ====================
-model Notification {
-  id            String   @id @default(cuid())
-  userId        String
-  type          String
-  title         String
-  message       String
-  isRead        Boolean  @default(false)
-  referenceId   String?
-  referenceType String?
-  createdAt     DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, isRead])
-}
-
 // ==================== NEXTAUTH ====================
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique

@@ -9,7 +9,7 @@ export default async function DashboardPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold">Selamat datang, {session.user.name}!</h1>
-      <p className="text-muted-foreground mt-1">Role: {session.user.role}</p>
+      <p className="text-muted-foreground mt-1">{session.user.role}</p>
     </div>
   )
 }
