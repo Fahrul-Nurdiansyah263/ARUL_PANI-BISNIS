@@ -157,3 +157,28 @@ sejiwa/
 ├── package.json            # Daftar dependensi aplikasi & script perintah npm
 └── tsconfig.json           # Konfigurasi proyek TypeScript
 ```
+
+
+##Lampiran
+
+Login
+<img width="873" height="668" alt="image" src="https://github.com/user-attachments/assets/2a39e320-1e1b-42a6-a13e-7bdd86c01971" />
+
+Register
+<img width="910" height="816" alt="image" src="https://github.com/user-attachments/assets/3155de60-f794-421d-9ef8-c55f959d3c93" />
+
+Dashboard
+<img width="1919" height="866" alt="image" src="https://github.com/user-attachments/assets/dce74421-9abf-4286-b9f4-8ff7482c03a4" />
+
+Proyek
+<img width="1919" height="865" alt="image" src="https://github.com/user-attachments/assets/e974338e-8716-4d0f-a7b7-d8f0d6a57071" />
+
+Tickets
+<img width="1919" height="869" alt="image" src="https://github.com/user-attachments/assets/4ab01890-ac30-472f-a1d9-f3ac768b6f26" />
+
+AI Insight
+<img width="1919" height="868" alt="image" src="https://github.com/user-attachments/assets/b486ee2b-5b2a-4feb-ac4e-7c8d76aad7ac" />
+
+Anggota
+<img width="1919" height="870" alt="image" src="https://github.com/user-attachments/assets/fa7c2bfc-6d42-40b4-aa30-9e35d748daf5" />
+
