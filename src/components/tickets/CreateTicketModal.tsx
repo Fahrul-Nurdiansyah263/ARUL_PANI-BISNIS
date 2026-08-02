@@ -13,12 +13,19 @@ interface User {
 interface Props {
   companyId: string
   role: string
+  defaultProjectId?: string
   onClose: () => void
   onCreated: () => void
 }
 
+interface Project {
+  id: string
+  name: string
+}
+
 export default function CreateTicketModal({
   role,
+  defaultProjectId,
   onClose,
   onCreated,
 }: Props) {
@@ -27,8 +34,10 @@ export default function CreateTicketModal({
     description: '',
     deadline: '',
     assigneeId: '',
+    projectId: defaultProjectId || '',
   })
   const [users, setUsers] = useState<User[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -40,6 +49,14 @@ export default function CreateTicketModal({
       })
       .then((json) => setUsers(Array.isArray(json) ? json : json.data ?? []))
       .catch((err) => setError(err.message))
+
+    fetch('/api/projects?limit=100')
+      .then((r) => {
+        if (!r.ok) throw new Error('Gagal memuat proyek')
+        return r.json()
+      })
+      .then((json) => setProjects(Array.isArray(json) ? json : json.data ?? []))
+      .catch((err) => console.error(err.message))
   }, [])
 
   useEffect(() => {
@@ -64,6 +81,7 @@ export default function CreateTicketModal({
           description: form.description,
           deadline: form.deadline || null,
           assigneeId: form.assigneeId || null,
+          projectId: form.projectId || null,
         }),
       })
 
@@ -117,6 +135,22 @@ export default function CreateTicketModal({
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
             />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Proyek</label>
+            <select
+              className="w-full mt-1 px-3 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              value={form.projectId}
+              onChange={(e) => setForm({ ...form, projectId: e.target.value })}
+            >
+              <option value="">Pilih proyek (Opsional)...</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>

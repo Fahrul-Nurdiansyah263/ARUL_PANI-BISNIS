@@ -10,8 +10,8 @@ export const createTicketSchema = z.object({
     .min(1, "Judul ticket wajib diisi")
     .max(200, "Judul maksimal 200 karakter"),
   description: z.string().max(2000, "Deskripsi maksimal 2000 karakter").optional(),
-  divisionId: z.string().min(1, "Divisi wajib dipilih"),
   assigneeId: z.string().nullable().optional(),
+  projectId: z.string().nullable().optional(),
   deadline: z
     .string()
     .datetime({ offset: true })
@@ -25,6 +25,7 @@ export const updateTicketSchema = z.object({
   description: z.string().max(2000).nullable().optional(),
   status: z.enum(["TODO", "IN_PROGRESS", "PRIORITY", "REVIEW",  "DONE"]).optional(),
   assigneeId: z.string().nullable().optional(),
+  projectId: z.string().nullable().optional(),
   deadline: z
     .string()
     .datetime({ offset: true })

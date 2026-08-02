@@ -36,18 +36,15 @@ export interface Ticket {
     role: string;
     position?: string | null;
     avatarUrl?: string;
-    division?: { id: string; name: string; description: string | null };
   };
   createdBy: {
     id: string;
     name: string;
     role: string;
     position?: string | null;
-    division?: { id: string; name: string; description: string | null };
   };
-  division?: { id: string; name: string };
+  project?: { id: string; name: string } | null;
   _count: { comments: number };
-  divisionId: string;
 }
 
 const COLUMNS: { id: TicketStatus; label: string }[] = [
@@ -75,6 +72,8 @@ export default function TicketBoard({
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
 
   const handleCommentAdded = (ticketId: string) => {
     setTickets((prev) =>
@@ -105,8 +104,11 @@ export default function TicketBoard({
   const fetchTickets = useCallback(async () => {
     try {
       setError(null);
-      // Ambil semua tiket dalam company — tidak difilter per divisi
-      const res = await fetch(`/api/tickets?limit=100`);
+      let url = `/api/tickets?limit=100`;
+      if (selectedProjectId !== "all") {
+        url += `&projectId=${selectedProjectId}`;
+      }
+      const res = await fetch(url);
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
@@ -121,12 +123,21 @@ export default function TicketBoard({
     } finally {
       setLoading(false);
     }
+  }, [selectedProjectId]);
+
+  useEffect(() => {
+    fetch("/api/projects?limit=100")
+      .then((r) => r.json())
+      .then((json) => {
+        setProjects(Array.isArray(json) ? json : json.data ?? []);
+      })
+      .catch((err) => console.error("Gagal memuat projects", err));
   }, []);
 
   useEffect(() => {
     setLoading(true);
     fetchTickets();
-  }, [fetchTickets]);
+  }, [fetchTickets, selectedProjectId]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const ticket = tickets.find((t) => t.id === event.active.id);
@@ -194,17 +205,6 @@ export default function TicketBoard({
 
   const canCreate = hasPermission(role, "canCreateTicket");
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground">
-        <div className="flex flex-col items-center gap-2">
-          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <span>Memuat tickets...</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div>
       {error && (
@@ -213,45 +213,74 @@ export default function TicketBoard({
         </div>
       )}
 
-      {canCreate && (
-        <div className="mb-4 flex justify-end">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+            Filter Proyek:
+          </label>
+          <select
+            className="px-3 py-1.5 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring min-w-[200px]"
+            value={selectedProjectId}
+            onChange={(e) => setSelectedProjectId(e.target.value)}
+          >
+            <option value="all">Semua Proyek</option>
+            <option value="unassigned">Tanpa Proyek</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {canCreate && (
           <Button onClick={() => setShowModal(true)}>
             <Plus size={16} className="mr-2" />
             Buat Ticket
           </Button>
+        )}
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center h-64 text-muted-foreground">
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <span>Memuat tickets...</span>
+          </div>
         </div>
+      ) : (
+        <DndContext
+          sensors={sensors}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin min-h-[500px]">
+            {COLUMNS.map((col) => (
+              <div key={col.id} className="w-[280px] shrink-0">
+                <TicketColumn
+                  id={col.id}
+                  label={col.label}
+                  tickets={ticketsByStatus(col.id)}
+                  role={role}
+                  onClick={(ticket) => setSelectedTicket(ticket)}
+                />
+              </div>
+            ))}
+          </div>
+
+          <DragOverlay>
+            {activeTicket && (
+              <TicketCard ticket={activeTicket} role={role} overlay />
+            )}
+          </DragOverlay>
+        </DndContext>
       )}
-
-      <DndContext
-        sensors={sensors}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin min-h-[500px]">
-          {COLUMNS.map((col) => (
-            <div key={col.id} className="w-[280px] shrink-0">
-              <TicketColumn
-                id={col.id}
-                label={col.label}
-                tickets={ticketsByStatus(col.id)}
-                role={role}
-                onClick={(ticket) => setSelectedTicket(ticket)}
-              />
-            </div>
-          ))}
-        </div>
-
-        <DragOverlay>
-          {activeTicket && (
-            <TicketCard ticket={activeTicket} role={role} overlay />
-          )}
-        </DragOverlay>
-      </DndContext>
 
       {showModal && (
         <CreateTicketModal
           companyId={companyId}
           role={role}
+          defaultProjectId={selectedProjectId !== "all" && selectedProjectId !== "unassigned" ? selectedProjectId : undefined}
           onClose={() => setShowModal(false)}
           onCreated={() => {
             setShowModal(false);
@@ -264,7 +293,10 @@ export default function TicketBoard({
         <TicketDetailModal
           ticket={selectedTicket}
           currentUser={{ id: userId, role }}
-          onClose={() => setSelectedTicket(null)}
+          onClose={() => {
+            setSelectedTicket(null);
+            fetchTickets(); // Refresh board tickets after detail modal closes to pick up any changes
+          }}
           onCommentAdded={handleCommentAdded}
         />
       )}

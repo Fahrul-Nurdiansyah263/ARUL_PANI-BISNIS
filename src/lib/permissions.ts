@@ -12,11 +12,13 @@ export const PERMISSIONS = {
   canDeleteTicket: [Role.OWNER, Role.MEMBER] as Role[],
   canUpdateTicket: [Role.OWNER, Role.MEMBER] as Role[],
 
+  // Projects — semua member bisa buat & update, hanya OWNER yang bisa delete
+  canCreateProject: [Role.OWNER, Role.MEMBER] as Role[],
+  canUpdateProject: [Role.OWNER, Role.MEMBER] as Role[],
+  canDeleteProject: [Role.OWNER] as Role[],
+
   // Comments — semua member bisa berkomentar di tiket manapun
   canCommentOnAnyTicket: [Role.OWNER, Role.MEMBER] as Role[],
-
-  // Divisions — hanya OWNER yang bisa kelola divisi/kategori proyek
-  canManageDivisions: [Role.OWNER] as Role[],
 
   // Users — OWNER bisa kelola anggota tim
   canManageUsers: [Role.OWNER] as Role[],
@@ -60,6 +62,12 @@ export const NAV_ITEMS = [
     label: "Dashboard",
     href: "/dashboard",
     icon: "LayoutDashboard" as const,
+    roles: [Role.OWNER, Role.MEMBER] as Role[],
+  },
+  {
+    label: "Proyek",
+    href: "/dashboard/projects",
+    icon: "FolderKanban" as const,
     roles: [Role.OWNER, Role.MEMBER] as Role[],
   },
   {

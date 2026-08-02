@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { X, MessageSquare, Send, Calendar, User } from 'lucide-react'
+import { X, MessageSquare, Send, Calendar, User, FolderKanban } from 'lucide-react'
 import { hasPermission } from '@/lib/permissions'
 import { Ticket } from './TicketBoard'
 import { cn } from '@/lib/utils'
@@ -47,11 +47,13 @@ export default function TicketDetailModal({
   const [newComment, setNewComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [projects, setProjects] = useState<{ id: string; name: string }[]>([])
+  const [currentProjectId, setCurrentProjectId] = useState<string>(ticket.project?.id || '')
 
   // Semua anggota Sejiwa Agency bisa berkomentar di tiket manapun
   const canComment = hasPermission(currentUser.role, 'canCommentOnAnyTicket')
 
-  // Fetch comments
+  // Fetch comments & projects
   useEffect(() => {
     setLoadingComments(true)
     setError('')
@@ -63,7 +65,30 @@ export default function TicketDetailModal({
       .then((data) => setComments(data))
       .catch((err) => setError(err.message))
       .finally(() => setLoadingComments(false))
+
+    fetch('/api/projects?limit=100')
+      .then((r) => r.json())
+      .then((json) => {
+        setProjects(Array.isArray(json) ? json : json.data ?? [])
+      })
+      .catch((err) => console.error('Gagal memuat projects', err))
   }, [ticket.id])
+
+  const handleProjectChange = async (projectId: string) => {
+    setCurrentProjectId(projectId)
+    try {
+      const res = await fetch(`/api/tickets/${ticket.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId: projectId || null }),
+      })
+      if (!res.ok) {
+        throw new Error('Gagal memperbarui proyek tiket')
+      }
+    } catch (err: any) {
+      alert(err.message)
+    }
+  }
 
   // Close on Escape key
   useEffect(() => {
@@ -168,6 +193,28 @@ export default function TicketDetailModal({
                     {ticket.assignee.position}
                   </span>
                 )}
+              </div>
+            </div>
+
+            <div className="w-px bg-border/60 hidden sm:block" />
+
+            {/* Proyek */}
+            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+              <FolderKanban size={16} className="text-muted-foreground/70 shrink-0" />
+              <div className="flex flex-col min-w-0 w-full">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide font-medium">Proyek</span>
+                <select
+                  className="bg-transparent border-0 font-semibold text-foreground p-0 focus:ring-0 focus:outline-none text-sm w-full truncate cursor-pointer hover:underline"
+                  value={currentProjectId}
+                  onChange={(e) => handleProjectChange(e.target.value)}
+                >
+                  <option value="">Tanpa Proyek</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 

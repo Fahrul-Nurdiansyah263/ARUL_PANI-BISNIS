@@ -10,6 +10,7 @@ import {
   Users,
   Building2,
   Sparkles,
+  FolderKanban,
   X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -23,6 +24,7 @@ const iconMap = {
   Sparkles,
   Users,
   Building2,
+  FolderKanban,
 } as const
 
 interface SidebarProps {

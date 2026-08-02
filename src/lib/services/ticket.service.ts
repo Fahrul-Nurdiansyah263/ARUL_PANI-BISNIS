@@ -26,6 +26,12 @@ const ticketInclude = {
       role: true,
     },
   },
+  project: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
   _count: { select: { comments: true } },
 } as const;
 
@@ -33,7 +39,6 @@ interface SessionUser {
   id: string;
   role: string;
   companyId: string;
-  divisionId?: string | null;
 }
 
 /**
@@ -42,7 +47,7 @@ interface SessionUser {
 export async function listTickets(
   user: SessionUser,
   options: {
-    divisionId?: string | null;
+    projectId?: string | null;
     page: number;
     limit: number;
     skip: number;
@@ -51,6 +56,14 @@ export async function listTickets(
   const where: Record<string, unknown> = {
     companyId: user.companyId,
   };
+
+  if (options.projectId !== undefined) {
+    if (options.projectId === "unassigned") {
+      where.projectId = null;
+    } else if (options.projectId) {
+      where.projectId = options.projectId;
+    }
+  }
 
   const [tickets, total] = await Promise.all([
     db.ticket.findMany({
@@ -84,6 +97,7 @@ export async function createTicket(input: unknown, user: SessionUser) {
       title: data.title,
       description: data.description,
       assigneeId: data.assigneeId || null,
+      projectId: data.projectId || null,
       deadline: data.deadline ? new Date(data.deadline) : null,
       companyId: user.companyId,
       createdById: user.id,
@@ -124,6 +138,7 @@ export async function updateTicket(
   if (data.description !== undefined) updateData.description = data.description;
   if (data.status !== undefined) updateData.status = data.status;
   if (data.assigneeId !== undefined) updateData.assigneeId = data.assigneeId;
+  if (data.projectId !== undefined) updateData.projectId = data.projectId || null;
   if (data.deadline !== undefined) {
     updateData.deadline = data.deadline ? new Date(data.deadline) : null;
   }

@@ -21,6 +21,29 @@ model Company {
   users       User[]
   tickets     Ticket[]
   aiSummaries AiSummary[]
+  projects    Project[]
+}
+
+// ==================== PROJECT ====================
+model Project {
+  id          String        @id @default(cuid())
+  companyId   String
+  name        String
+  description String?
+  status      ProjectStatus @default(ACTIVE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  company     Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  tickets     Ticket[]
+
+  @@index([companyId])
+}
+
+enum ProjectStatus {
+  ACTIVE
+  ON_HOLD
+  COMPLETED
 }
 
 // ==================== USER ====================
@@ -52,6 +75,7 @@ enum Role {
 model Ticket {
   id          String       @id @default(cuid())
   companyId   String
+  projectId   String?
   title       String
   description String?
   assigneeId  String?
@@ -62,6 +86,7 @@ model Ticket {
   updatedAt   DateTime     @updatedAt
 
   company   Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  project   Project?        @relation(fields: [projectId], references: [id], onDelete: SetNull)
   assignee  User?           @relation("AssignedTickets", fields: [assigneeId], references: [id])
   createdBy User            @relation("CreatedTickets", fields: [createdById], references: [id])
   comments  TicketComment[]
@@ -69,6 +94,7 @@ model Ticket {
   @@index([companyId])
   @@index([status])
   @@index([assigneeId])
+  @@index([projectId])
 }
 
 enum TicketStatus {
