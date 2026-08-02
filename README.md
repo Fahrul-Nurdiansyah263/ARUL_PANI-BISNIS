@@ -12,12 +12,17 @@ Sejiwa Agency manajemen proyek adalah platform manajemen proyek yang dibuat untu
      * 👑 **OWNER**: Memiliki kendali penuh atas perusahaan, manajemen anggota tim, pengelolaan tiket proyek, serta akses penuh ke halaman AI Insights.
      * 👥 **MEMBER**: Dapat membuat, memperbarui status tiket proyek, dan memberikan komentar pada tiket tim manapun untuk menunjang kolaborasi.
 
-2. **Kanban Task Board (Drag & Drop)**
+2. **Manajemen Proyek (Projects)**
+   * Pengelompokan tiket tugas berdasarkan proyek klien di `/dashboard/projects`.
+   * Semua anggota dapat membuat dan mengedit proyek; hanya **OWNER** yang memiliki izin menghapus proyek.
+
+3. **Kanban Task Board (Drag & Drop)**
    * Manajemen siklus tugas secara visual dengan status: `TODO`, `IN_PROGRESS`, `REVIEW`, `PRIORITY`, dan `DONE`.
    * Drag-and-drop interaktif bertenaga `@dnd-kit`.
    * Detail tiket yang kaya termasuk deadline, penanggung jawab (assignee), dan utas komentar terintegrasi.
+   * Filter tiket berdasarkan proyek.
 
-3. **AI Insights (Integrasi Gemini AI)**
+4. **AI Insights (Integrasi Gemini AI)**
    * Halaman asisten AI khusus (**AI Insights**) di `/dashboard/ai` yang ditenagai oleh Gemini AI (`gemini-2.5-flash`).
    * Membantu menganalisis produktivitas tim, memberikan saran prioritas tiket, serta berinteraksi secara real-time menggunakan percakapan cerdas yang kontekstual.
 
@@ -118,8 +123,9 @@ Sistem perizinan dikelola secara terpusat di [permissions.ts](file:///c:/Learnin
 | **Menghapus Tiket** | ✅ | ✅ | Memberikan kebebasan pengelolaan tiket penuh kepada seluruh tim |
 | **Memperbarui Tiket** | ✅ | ✅ | Mengubah status, memindahkan kolom, mengedit detail tiket |
 | **Menulis Komentar** | ✅ | ✅ | Berdiskusi di kolom komentar pada tiket manapun |
-| **Mengelola Divisi** | ✅ | ❌ | Terbatas hanya untuk tingkat Owner |
-| **Mengelola Anggota** | ✅ | ❌ | Owner dapat mengundang, mengedit, atau menonaktifkan pengguna |
+| **Membuat / Edit Proyek** | ✅ | ✅ | Semua anggota tim bisa membuat & memperbarui data proyek |
+| **Menghapus Proyek** | ✅ | ❌ | Terbatas hanya untuk tingkat Owner |
+| **Mengelola Anggota** | ✅ | ❌ | Owner dapat melihat & mengelola daftar anggota tim di `/dashboard/users` |
 | **Mengakses AI Insights** | ✅ | ✅ | Semua anggota tim dapat berkonsultasi dengan Sejiwa AI |
 
 ---
