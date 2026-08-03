@@ -66,13 +66,14 @@ export async function createComment(
     throw new ServiceError("Anda tidak memiliki akses ke ticket ini", 403);
   }
 
-  // Semua anggota Sejiwa Agency bisa berkomentar di tiket manapun
+  // Semua anggota Arul-Pani Agency bisa berkomentar di tiket manapun
 
   return await db.ticketComment.create({
     data: {
       ticketId,
       userId: user.id,
       content: data.content,
+      imageUrl: data.imageUrl,
     },
     include: {
       user: {

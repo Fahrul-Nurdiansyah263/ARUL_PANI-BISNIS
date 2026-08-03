@@ -13,7 +13,7 @@ export async function POST() {
 
     const resend = new Resend(apiKey);
     const { data, error } = await resend.emails.send({
-      from: 'Sejiwa <[EMAIL_ADDRESS]>',
+      from: 'Arul-Pani <[EMAIL_ADDRESS]>',
       to: ['[EMAIL_ADDRESS]'],
       subject: 'Ticket Baru Dibuat',
       react: EmailTemplate({ firstName: 'John' }),

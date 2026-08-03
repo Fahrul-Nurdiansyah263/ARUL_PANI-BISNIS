@@ -5,6 +5,7 @@ export const createCommentSchema = z.object({
     .string()
     .min(1, "Komentar tidak boleh kosong")
     .max(1000, "Komentar maksimal 1000 karakter"),
+  imageUrl: z.string().url("URL gambar tidak valid").optional().nullable(),
 });
 
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;

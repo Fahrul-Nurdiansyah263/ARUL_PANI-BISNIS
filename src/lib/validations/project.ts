@@ -10,6 +10,7 @@ export const createProjectSchema = z.object({
     .max(1000, "Deskripsi maksimal 1000 karakter")
     .optional()
     .nullable(),
+  imageUrl: z.string().url("URL gambar tidak valid").optional().nullable(),
   status: z.enum(["ACTIVE", "ON_HOLD", "COMPLETED"]).optional(),
 });
 
@@ -24,6 +25,7 @@ export const updateProjectSchema = z.object({
     .max(1000, "Deskripsi maksimal 1000 karakter")
     .optional()
     .nullable(),
+  imageUrl: z.string().url("URL gambar tidak valid").optional().nullable(),
   status: z.enum(["ACTIVE", "ON_HOLD", "COMPLETED"]).optional(),
 });
 

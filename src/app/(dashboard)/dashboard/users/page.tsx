@@ -78,7 +78,7 @@ export default function UsersPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Anggota Tim</h1>
           <p className="text-muted-foreground text-sm mt-0.5">
-            Daftar seluruh tim dan staf Sejiwa Agency
+            Daftar seluruh tim dan staf Arul-Pani Agency
           </p>
         </div>
 

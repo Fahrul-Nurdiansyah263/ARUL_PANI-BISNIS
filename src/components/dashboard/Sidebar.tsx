@@ -58,7 +58,7 @@ export default function Sidebar({ role, isOpen, onClose }: SidebarProps) {
       >
         <div className="p-6 border-b flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold tracking-tight">Sejiwa</h1>
+            <h1 className="text-xl font-bold tracking-tight">Arul-Pani</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
               Project Management Agency
             </p>

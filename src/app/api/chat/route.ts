@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 
-const SYSTEM_PROMPT = `Kamu adalah asisten AI bernama "Sejiwa AI" untuk platform manajemen proyek Sejiwa. 
+const SYSTEM_PROMPT = `Kamu adalah asisten AI bernama "Arul-Pani AI" untuk platform manajemen proyek Arul-Pani. 
 Kamu membantu pengguna dengan:
 - Pertanyaan tentang manajemen proyek
 - Cara menggunakan fitur-fitur dashboard

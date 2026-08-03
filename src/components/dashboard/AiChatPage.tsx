@@ -32,7 +32,7 @@ interface AiChatPageProps {
 const WELCOME_MESSAGE: Message = {
   id: 'welcome',
   role: 'assistant',
-  content: `Halo! 👋 Saya **Sejiwa AI**, asisten cerdas platform manajemen proyek kamu.
+  content: `Halo! 👋 Saya **Arul-Pani AI**, asisten cerdas platform manajemen proyek kamu.
 
 Saya siap membantu kamu dengan berbagai hal:
 • **Manajemen proyek** — strategi, prioritas, dan perencanaan
@@ -193,7 +193,7 @@ export default function AiChatPage({ user }: AiChatPageProps) {
             <div className="rounded-2xl p-4 sm:p-6 mb-2 bg-foreground text-background">
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles size={16} className="opacity-80" />
-                <span className="font-semibold text-sm">Sejiwa AI</span>
+                <span className="font-semibold text-sm">Arul-Pani AI</span>
                 <span className="text-xs opacity-50 ml-auto">Gemini Powered</span>
               </div>
               <p className="text-sm opacity-80 leading-relaxed">
@@ -302,7 +302,7 @@ export default function AiChatPage({ user }: AiChatPageProps) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Tanya Sejiwa AI apa saja..."
+              placeholder="Tanya Arul-Pani AI apa saja..."
               rows={1}
               disabled={isLoading}
               className="flex-1 bg-transparent text-sm resize-none outline-none placeholder:text-muted-foreground leading-relaxed disabled:opacity-50"

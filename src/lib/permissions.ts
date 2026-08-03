@@ -1,7 +1,7 @@
 import { Role } from "@prisma/client";
 
 /**
- * Centralized permission system untuk Sejiwa Agency.
+ * Centralized permission system untuk Arul-Pani Agency.
  * Semua anggota (MEMBER & OWNER) setara dalam mengakses proyek.
  * OWNER hanya memiliki hak tambahan untuk mengelola settings agency.
  */
@@ -55,7 +55,7 @@ export function canCommentOnTicket(
 }
 
 /**
- * Navigation items — semua item terlihat untuk semua anggota Sejiwa Agency.
+ * Navigation items — semua item terlihat untuk semua anggota Arul-Pani Agency.
  */
 export const NAV_ITEMS = [
   {

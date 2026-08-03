@@ -23,8 +23,15 @@ export async function listProjects(
     skip: number;
   },
 ) {
+  const currentUser = await db.user.findUnique({
+    where: { id: user.id },
+    select: { companyId: true },
+  });
+
+  const companyId = currentUser?.companyId || user.companyId;
+
   const where = {
-    companyId: user.companyId,
+    companyId,
   };
 
   const [projects, total] = await Promise.all([
@@ -55,12 +62,25 @@ export async function createProject(input: unknown, user: SessionUser) {
 
   const data = createProjectSchema.parse(input);
 
+  const currentUser = await db.user.findUnique({
+    where: { id: user.id },
+    select: { companyId: true },
+  });
+
+  if (!currentUser) {
+    throw new ServiceError(
+      "Sesi login Anda sudah kadaluarsa (database telah di-reset). Silakan Logout lalu Login kembali.",
+      401
+    );
+  }
+
   const project = await db.project.create({
     data: {
       name: data.name,
       description: data.description,
+      imageUrl: data.imageUrl,
       status: data.status || "ACTIVE",
-      companyId: user.companyId,
+      companyId: currentUser.companyId,
     },
   });
 
@@ -97,6 +117,7 @@ export async function updateProject(
   const updateData: any = {};
   if (data.name !== undefined) updateData.name = data.name;
   if (data.description !== undefined) updateData.description = data.description;
+  if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
   if (data.status !== undefined) updateData.status = data.status;
 
   const project = await db.project.update({

@@ -7,11 +7,13 @@ import { FolderKanban, Plus, Edit2, Trash2, Loader2 } from 'lucide-react'
 import CreateProjectModal from '@/components/projects/CreateProjectModal'
 import EditProjectModal from '@/components/projects/EditProjectModal'
 import DeleteProjectModal from '@/components/projects/DeleteProjectModal'
+import ProjectDetailModal from '@/components/projects/ProjectDetailModal'
 
 interface Project {
   id: string
   name: string
   description: string | null
+  imageUrl?: string | null
   status: 'ACTIVE' | 'ON_HOLD' | 'COMPLETED'
   createdAt: string
   _count: {
@@ -28,6 +30,7 @@ export default function ProjectsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [deletingProject, setDeletingProject] = useState<Project | null>(null)
+  const [detailProject, setDetailProject] = useState<Project | null>(null)
   const [deleting, setDeleting] = useState(false)
 
   const fetchProjects = async () => {
@@ -143,49 +146,82 @@ export default function ProjectsPage() {
           {projects.map((p) => (
             <div
               key={p.id}
-              className="group border bg-card hover:bg-accent/30 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between hover:-translate-y-0.5"
+              onClick={() => setDetailProject(p)}
+              className="group border bg-card hover:bg-accent/30 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between hover:-translate-y-0.5 cursor-pointer"
             >
-              <div>
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <h3 className="font-bold text-lg leading-tight tracking-tight text-card-foreground">
-                    {p.name}
-                  </h3>
-                  {getStatusBadge(p.status)}
-                </div>
-                <p className="text-muted-foreground text-sm line-clamp-3 mb-4 min-h-[3.75rem]">
-                  {p.description || 'Tidak ada deskripsi proyek.'}
-                </p>
+              <div className="w-full h-36 overflow-hidden bg-muted/60 relative flex items-center justify-center border-b">
+                {p.imageUrl ? (
+                  <img
+                    src={p.imageUrl}
+                    alt={p.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center gap-1.5 text-muted-foreground/60">
+                    <FolderKanban size={28} />
+                    <span className="text-xs font-medium tracking-wide">Gambar Tidak Ada</span>
+                  </div>
+                )}
               </div>
+              <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                <div>
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <h3 className="font-bold text-lg leading-tight tracking-tight text-card-foreground group-hover:text-primary transition-colors">
+                      {p.name}
+                    </h3>
+                    {getStatusBadge(p.status)}
+                  </div>
+                  <p className="text-muted-foreground text-sm line-clamp-3 min-h-[3.75rem]">
+                    {p.description || 'Tidak ada deskripsi proyek.'}
+                  </p>
+                </div>
 
-              <div className="pt-4 border-t flex items-center justify-between">
-                <span className="text-xs text-muted-foreground font-medium">
-                  {p._count.tickets} Tiket Tugas
-                </span>
+                <div className="pt-4 border-t flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground font-medium">
+                    {p._count.tickets} Tiket Tugas
+                  </span>
 
-                <div className="flex items-center gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                    onClick={() => setEditingProject(p)}
-                  >
-                    <Edit2 size={14} />
-                  </Button>
-                  {isOwner && (
+                  <div className="flex items-center gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                      onClick={() => setDeletingProject(p)}
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setEditingProject(p)
+                      }}
                     >
-                      <Trash2 size={14} />
+                      <Edit2 size={14} />
                     </Button>
-                  )}
+                    {isOwner && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setDeletingProject(p)
+                        }}
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           ))}
         </div>
+      )}
+
+      {detailProject && (
+        <ProjectDetailModal
+          project={detailProject}
+          isOwner={isOwner}
+          onClose={() => setDetailProject(null)}
+          onEdit={() => setEditingProject(detailProject)}
+          onDelete={() => setDeletingProject(detailProject)}
+        />
       )}
 
       {isCreateOpen && (

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { X, MessageSquare, Send, Calendar, User, FolderKanban } from 'lucide-react'
+import { X, MessageSquare, Send, Calendar, FolderKanban, ImagePlus, Loader2, Trash2 } from 'lucide-react'
 import { hasPermission } from '@/lib/permissions'
 import { Ticket } from './TicketBoard'
 import { cn } from '@/lib/utils'
@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 interface Comment {
   id: string
   content: string
+  imageUrl?: string | null
   createdAt: string
   user: {
     id: string
@@ -45,12 +46,14 @@ export default function TicketDetailModal({
   const [comments, setComments] = useState<Comment[]>([])
   const [loadingComments, setLoadingComments] = useState(true)
   const [newComment, setNewComment] = useState('')
+  const [commentImage, setCommentImage] = useState('')
+  const [uploadingImage, setUploadingImage] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [projects, setProjects] = useState<{ id: string; name: string }[]>([])
   const [currentProjectId, setCurrentProjectId] = useState<string>(ticket.project?.id || '')
 
-  // Semua anggota Sejiwa Agency bisa berkomentar di tiket manapun
+  // Semua anggota Arul-Pani Agency bisa berkomentar di tiket manapun
   const canComment = hasPermission(currentUser.role, 'canCommentOnAnyTicket')
 
   // Fetch comments & projects
@@ -99,6 +102,46 @@ export default function TicketDetailModal({
     return () => document.removeEventListener('keydown', handleEscape)
   }, [onClose])
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      return setError('File harus berupa gambar')
+    }
+
+    setUploadingImage(true)
+    setError('')
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const text = await res.text()
+      let data: any = {}
+      try {
+        data = JSON.parse(text)
+      } catch {
+        throw new Error('Gagal mengunggah gambar: Respon server bukan JSON (terjadi error server)')
+      }
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal mengunggah gambar')
+      }
+
+      setCommentImage(data.url)
+    } catch (err: any) {
+      setError(err.message || 'Gagal mengunggah gambar komentar')
+    } finally {
+      setUploadingImage(false)
+    }
+  }
+
   const handlePostComment = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newComment.trim()) return
@@ -109,7 +152,10 @@ export default function TicketDetailModal({
       const res = await fetch(`/api/tickets/${ticket.id}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: newComment.trim() }),
+        body: JSON.stringify({
+          content: newComment.trim(),
+          imageUrl: commentImage || null,
+        }),
       })
 
       const data = await res.json()
@@ -119,6 +165,7 @@ export default function TicketDetailModal({
 
       setComments((prev) => [...prev, data])
       setNewComment('')
+      setCommentImage('')
       onCommentAdded(ticket.id)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan jaringan')
@@ -274,7 +321,7 @@ export default function TicketDetailModal({
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary border border-primary/20 shrink-0 mt-0.5">
                       {comment.user.name[0].toUpperCase()}
                     </div>
-                    <div className="space-y-1 flex-1">
+                    <div className="space-y-1.5 flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-foreground">{comment.user.name}</span>
                         <span className="text-[11px] text-muted-foreground" suppressHydrationWarning>
@@ -287,6 +334,19 @@ export default function TicketDetailModal({
                       <p className="text-foreground/95 leading-relaxed break-words">
                         {comment.content}
                       </p>
+
+                      {/* Comment Image Attachment */}
+                      {comment.imageUrl && (
+                        <div className="mt-2 max-w-sm rounded-lg overflow-hidden border border-border">
+                          <a href={comment.imageUrl} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={comment.imageUrl}
+                              alt="Gambar Lampiran Komentar"
+                              className="w-full max-h-60 object-cover hover:opacity-90 transition-opacity"
+                            />
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -302,25 +362,57 @@ export default function TicketDetailModal({
 
             {/* Comment Form */}
             {canComment ? (
-              <form onSubmit={handlePostComment} className="flex gap-2 items-end pt-2">
-                <div className="flex-1">
-                  <textarea
-                    rows={2}
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-border bg-background placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all resize-none leading-relaxed"
-                    placeholder="Tulis komentar Anda..."
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    disabled={submitting}
-                  />
+              <form onSubmit={handlePostComment} className="flex flex-col gap-2.5 pt-2">
+                {commentImage && (
+                  <div className="relative w-32 h-24 rounded-lg overflow-hidden border border-border">
+                    <img src={commentImage} alt="Lampiran komentar" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setCommentImage('')}
+                      className="absolute top-1 right-1 p-1 rounded-full bg-black/70 text-white hover:bg-destructive transition-colors"
+                      title="Hapus gambar"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1 relative">
+                    <textarea
+                      rows={2}
+                      className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-border bg-background placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all resize-none leading-relaxed"
+                      placeholder="Tulis komentar Anda..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      disabled={submitting}
+                    />
+                  </div>
+
+                  <label className="p-3 rounded-xl border border-border bg-background text-muted-foreground hover:text-foreground cursor-pointer hover:bg-muted transition-colors flex items-center justify-center shrink-0 h-[48px] w-[48px]">
+                    {uploadingImage ? (
+                      <Loader2 size={18} className="animate-spin text-primary" />
+                    ) : (
+                      <ImagePlus size={18} />
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={uploadingImage || submitting}
+                      className="hidden"
+                    />
+                  </label>
+
+                  <Button
+                    type="submit"
+                    className="rounded-xl h-[48px] px-4 font-semibold shrink-0 gap-1.5"
+                    disabled={submitting || uploadingImage || !newComment.trim()}
+                  >
+                    <Send size={14} />
+                    {submitting ? 'Mengirim...' : 'Kirim'}
+                  </Button>
                 </div>
-                <Button
-                  type="submit"
-                  className="rounded-xl h-[48px] px-4 font-semibold shrink-0 gap-1.5"
-                  disabled={submitting || !newComment.trim()}
-                >
-                  <Send size={14} />
-                  {submitting ? 'Mengirim...' : 'Kirim'}
-                </Button>
               </form>
             ) : (
               <div className="text-xs bg-amber-500/10 text-amber-600 dark:text-amber-500 px-4 py-3 rounded-xl border border-amber-500/20 text-center font-medium">

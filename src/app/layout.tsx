@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sejiwa — Project Management untuk Agency",
+  title: "Arul-Pani — Project Management untuk Agency",
   description:
-    "Platform manajemen proyek untuk Sejiwa Agency. Kelola ticket, track progress tim, dan dapatkan AI insights.",
+    "Platform manajemen proyek untuk Arul-Pani Agency. Kelola ticket, track progress tim, dan dapatkan AI insights.",
 };
 
 export default function RootLayout({
