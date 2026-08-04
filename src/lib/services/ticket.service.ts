@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { hasPermission } from "@/lib/permissions";
+import { sendAssignmentEmail } from "@/lib/services/email.service";
 import {
   createTicketSchema,
   updateTicketSchema,
@@ -15,6 +16,7 @@ const ticketInclude = {
     select: {
       id: true,
       name: true,
+      email: true,
       role: true,
       avatarUrl: true,
     },
@@ -105,6 +107,24 @@ export async function createTicket(input: unknown, user: SessionUser) {
     include: ticketInclude,
   });
 
+  // Kirim email notifikasi penugasan jika tiket memiliki assignee (di-await agar serverless Vercel tidak mematikan request sebelum email terkirim)
+  if (ticket.assignee && ticket.assignee.email) {
+    try {
+      await sendAssignmentEmail({
+        assigneeEmail: ticket.assignee.email,
+        assigneeName: ticket.assignee.name,
+        ticketTitle: ticket.title,
+        ticketId: ticket.id,
+        projectName: ticket.project?.name,
+        assignedByName: ticket.createdBy.name,
+        deadline: ticket.deadline,
+        description: ticket.description,
+      });
+    } catch (err) {
+      console.error("[Ticket Service] Error sending assignment email:", err);
+    }
+  }
+
   return ticket;
 }
 
@@ -122,7 +142,7 @@ export async function updateTicket(
   // Ownership check: ticket harus milik company user
   const existing = await db.ticket.findUnique({
     where: { id: ticketId },
-    select: { companyId: true },
+    select: { companyId: true, assigneeId: true },
   });
 
   if (!existing) {
@@ -148,6 +168,35 @@ export async function updateTicket(
     data: updateData,
     include: ticketInclude,
   });
+
+  // Kirim email penugasan jika assignee diubah/ditambahkan baru
+  const isAssigneeChanged =
+    data.assigneeId !== undefined &&
+    data.assigneeId !== null &&
+    data.assigneeId !== existing.assigneeId;
+
+  if (isAssigneeChanged && ticket.assignee && ticket.assignee.email) {
+    // Cari nama pengubah/updater
+    const updater = await db.user.findUnique({
+      where: { id: user.id },
+      select: { name: true },
+    });
+
+    try {
+      await sendAssignmentEmail({
+        assigneeEmail: ticket.assignee.email,
+        assigneeName: ticket.assignee.name,
+        ticketTitle: ticket.title,
+        ticketId: ticket.id,
+        projectName: ticket.project?.name,
+        assignedByName: updater?.name || ticket.createdBy.name,
+        deadline: ticket.deadline,
+        description: ticket.description,
+      });
+    } catch (err) {
+      console.error("[Ticket Service] Error sending assignment update email:", err);
+    }
+  }
 
   return ticket;
 }

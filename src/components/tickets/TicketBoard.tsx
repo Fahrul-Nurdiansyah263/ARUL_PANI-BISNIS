@@ -19,7 +19,7 @@ import TicketCard from "./TicketCard";
 import CreateTicketModal from "./CreateTicketModal";
 import TicketDetailModal from "./TicketDetailModal";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Bell } from "lucide-react";
 import { hasPermission } from "@/lib/permissions";
 
 export type TicketStatus = "TODO" | "IN_PROGRESS" | "REVIEW" | "PRIORITY" | "DONE";
@@ -68,12 +68,38 @@ export default function TicketBoard({
 }: Props) {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [activeTicket, setActiveTicket] = useState<Ticket | null>(null);
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [sendingReminders, setSendingReminders] = useState(false);
+  const [reminderNotification, setReminderNotification] = useState<string | null>(null);
+
+  const handleSendDeadlineReminders = async () => {
+    try {
+      setSendingReminders(true);
+      setReminderNotification(null);
+      const res = await fetch("/api/tickets/deadline-reminders", { method: "POST" });
+      const data = await res.json();
+
+      if (data.success) {
+        setReminderNotification(
+          `✅ ${data.message} (${data.emailsSent} email pengingat terkirim)`
+        );
+      } else {
+        setReminderNotification(`❌ Gagal: ${data.error || "Terjadi kesalahan"}`);
+      }
+    } catch (err) {
+      setReminderNotification("❌ Gagal terhubung ke server untuk mengirim pengingat.");
+    } finally {
+      setSendingReminders(false);
+      setTimeout(() => setReminderNotification(null), 6000);
+    }
+  };
+
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
 
   const handleCommentAdded = (ticketId: string) => {
     setTickets((prev) =>
@@ -233,13 +259,31 @@ export default function TicketBoard({
           </select>
         </div>
 
-        {canCreate && (
-          <Button onClick={() => setShowModal(true)}>
-            <Plus size={16} className="mr-2" />
-            Buat Ticket
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={handleSendDeadlineReminders}
+            disabled={sendingReminders}
+            title="Kirim email pengingat untuk semua tiket yang mendekati deadline"
+          >
+            <Bell size={16} className={`mr-2 ${sendingReminders ? "animate-spin" : ""}`} />
+            {sendingReminders ? "Mengirim..." : "Pengingat Deadline"}
           </Button>
-        )}
+
+          {canCreate && (
+            <Button onClick={() => setShowModal(true)}>
+              <Plus size={16} className="mr-2" />
+              Buat Ticket
+            </Button>
+          )}
+        </div>
       </div>
+
+      {reminderNotification && (
+        <div className="mb-4 px-4 py-3 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 text-sm border border-blue-500/20">
+          {reminderNotification}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center h-64 text-muted-foreground">
