@@ -4,61 +4,62 @@ import { registerSchema } from "@/lib/validations/auth";
 import { ServiceError } from "./ticket.service";
 
 /**
- * Register agency + owner user (pendaftar pertama = OWNER).
+ * Register member user ke Arul-Pani Agency.
+ * Semua pengguna baru otomatis bergabung ke Arul-Pani Agency sebagai MEMBER.
  */
-export async function registerCompany(input: unknown) {
+export async function registerUser(input: unknown) {
   const data = registerSchema.parse(input);
 
   // Cek email sudah ada
+  const email = data.email.trim().toLowerCase();
   const existingUser = await db.user.findUnique({
-    where: { email: data.email },
+    where: { email },
   });
   if (existingUser) {
     throw new ServiceError("Email sudah terdaftar", 400);
   }
 
-  // Buat slug dari company name
-  let slug = data.companyName
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "")
-    .replace(/-+/g, "-") // Collapse multiple dashes
-    .replace(/^-|-$/g, ""); // Trim leading/trailing dashes
+  // Cari perusahaan Arul-Pani Agency (atau buat jika belum ada sebagai fallback)
+  let company = await db.company.findFirst({
+    where: {
+      OR: [
+        { slug: "arul-pani-agency" },
+        { name: "Arul-Pani Agency" },
+      ],
+    },
+  });
 
-  // Cek slug collision — tambahkan random suffix jika perlu
-  const existingCompany = await db.company.findUnique({ where: { slug } });
-  if (existingCompany) {
-    const suffix = Math.random().toString(36).substring(2, 6);
-    slug = `${slug}-${suffix}`;
-
-    // Double check (sangat unlikely collision tapi defensive)
-    const stillExists = await db.company.findUnique({ where: { slug } });
-    if (stillExists) {
-      throw new ServiceError(
-        "Nama perusahaan sudah terdaftar, coba nama lain",
-        400,
-      );
-    }
+  if (!company) {
+    company = await db.company.create({
+      data: {
+        name: "Arul-Pani Agency",
+        slug: "arul-pani-agency",
+      },
+    });
   }
 
   const passwordHash = await bcrypt.hash(data.password, 12);
 
-  // Buat company + super admin sekaligus
-  const company = await db.company.create({
+  // Buat akun anggota tim (MEMBER)
+  const user = await db.user.create({
     data: {
-      name: data.companyName,
-      slug,
-      users: {
-        create: {
-          name: data.name,
-          email: data.email,
-          passwordHash,
-          role: "OWNER",
-        },
-      },
+      name: data.name.trim(),
+      email,
+      passwordHash,
+      role: "MEMBER",
+      position: data.position?.trim() || "Staff",
+      companyId: company.id,
     },
-    include: { users: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      position: true,
+      companyId: true,
+      createdAt: true,
+    },
   });
 
-  return company;
+  return user;
 }

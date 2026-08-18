@@ -5,15 +5,12 @@ import { z } from "zod/v4";
  */
 
 export const registerSchema = z.object({
-  companyName: z
-    .string()
-    .min(2, "Nama perusahaan minimal 2 karakter")
-    .max(100, "Nama perusahaan maksimal 100 karakter"),
   name: z
     .string()
     .min(2, "Nama minimal 2 karakter")
     .max(100, "Nama maksimal 100 karakter"),
   email: z.email("Format email tidak valid"),
+  position: z.string().max(100, "Jabatan maksimal 100 karakter").optional(),
   password: z
     .string()
     .min(8, "Password minimal 8 karakter")

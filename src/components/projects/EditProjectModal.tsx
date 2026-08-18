@@ -140,7 +140,7 @@ export default function EditProjectModal({ project, onClose, onUpdated }: Props)
             <textarea
               className="w-full mt-1 px-3 py-2 rounded-md border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
               placeholder="Deskripsi proyek..."
-              rows={3}
+              rows={15}
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
             />

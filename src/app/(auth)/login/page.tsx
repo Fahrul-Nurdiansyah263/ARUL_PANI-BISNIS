@@ -77,7 +77,7 @@ export default function LoginPage() {
         <p className="text-sm text-center text-muted-foreground mt-4">
           Belum punya akun?{' '}
           <Link href="/register" className="text-primary hover:underline">
-            Daftar perusahaan
+            Daftar akun tim
           </Link>
         </p>
       </div>

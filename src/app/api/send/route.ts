@@ -1,37 +1,51 @@
-import { EmailTemplate } from '@/components/email/email-template';
-import { Resend } from 'resend';
+import { NextResponse } from "next/server";
+import { sendAssignmentEmail } from "@/lib/services/email.service";
 
-export async function POST() {
+export async function GET(req: Request) {
+  return POST(req);
+}
+
+export async function POST(req: Request) {
   try {
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) {
-      return Response.json(
-        { success: false, error: 'RESEND_API_KEY belum dikonfigurasi di environment.' },
+    const { searchParams } = new URL(req.url);
+    const toEmail = searchParams.get("to") || process.env.GMAIL_USER;
+
+    if (!toEmail) {
+      return NextResponse.json(
+        { success: false, error: "Email tujuan tidak ditemukan." },
         { status: 400 }
       );
     }
 
-    const resend = new Resend(apiKey);
-    const { data, error } = await resend.emails.send({
-      from: 'Arul-Pani <[EMAIL_ADDRESS]>',
-      to: ['[EMAIL_ADDRESS]'],
-      subject: 'Ticket Baru Dibuat',
-      react: EmailTemplate({ firstName: 'John' }),
+    const result = await sendAssignmentEmail({
+      assigneeEmail: toEmail,
+      assigneeName: "Test Assignee",
+      ticketTitle: "Uji Coba Notifikasi Penugasan Tiket",
+      ticketId: "test-id",
+      projectName: "Arul-Pani Agency",
+      assignedByName: "System Admin",
+      deadline: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      description: "Ini adalah email tes penugasan tugas dari sistem Arul-Pani Agency.",
     });
 
-    if (error) {
-      console.error('[Resend Error]', JSON.stringify(error, null, 2));
-      return Response.json(
-        { success: false, error: { name: error.name, message: error.message } },
+    if (!result) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Gagal mengirim email. Periksa konfigurasi GMAIL_USER dan GMAIL_APP_PASSWORD di .env",
+        },
         { status: 500 }
       );
     }
 
-    console.log('[Resend Success]', data);
-    return Response.json({ success: true, data });
+    return NextResponse.json({
+      success: true,
+      message: `Email uji coba berhasil dikirim ke ${toEmail}`,
+      messageId: result.messageId,
+    });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error('[Resend Exception]', message);
-    return Response.json({ success: false, error: message }, { status: 500 });
+    console.error("[Email Test Exception]", message);
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

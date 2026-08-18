@@ -11,13 +11,6 @@ export async function GET(req: Request) {
     if (!session)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    if (!hasPermission(session.user.role, "canManageUsers")) {
-      return NextResponse.json(
-        { error: "Anda tidak memiliki akses ke data anggota" },
-        { status: 403 },
-      );
-    }
-
     const { searchParams } = new URL(req.url);
     const pagination = parsePagination(searchParams);
 

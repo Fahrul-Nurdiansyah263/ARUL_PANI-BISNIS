@@ -7,7 +7,9 @@ import { X } from 'lucide-react'
 interface User {
   id: string
   name: string
+  email: string
   role: string
+  position?: string | null
 }
 
 interface Props {
@@ -44,11 +46,11 @@ export default function CreateTicketModal({
   useEffect(() => {
     fetch('/api/users?limit=100')
       .then((r) => {
-        if (!r.ok) throw new Error('Gagal memuat user')
+        if (!r.ok) throw new Error('Gagal memuat daftar anggota')
         return r.json()
       })
       .then((json) => setUsers(Array.isArray(json) ? json : json.data ?? []))
-      .catch((err) => setError(err.message))
+      .catch((err) => console.error('[CreateTicketModal]', err.message))
 
     fetch('/api/projects?limit=100')
       .then((r) => {
@@ -56,7 +58,7 @@ export default function CreateTicketModal({
         return r.json()
       })
       .then((json) => setProjects(Array.isArray(json) ? json : json.data ?? []))
-      .catch((err) => console.error(err.message))
+      .catch((err) => console.error('[CreateTicketModal]', err.message))
   }, [])
 
   useEffect(() => {
@@ -160,10 +162,10 @@ export default function CreateTicketModal({
               value={form.assigneeId}
               onChange={(e) => setForm({ ...form, assigneeId: e.target.value })}
             >
-              <option value="">Pilih assignee...</option>
+              <option value="">Pilih assignee (Opsional)...</option>
               {users.map((u) => (
                 <option key={u.id} value={u.id}>
-                  {u.name} ({u.role})
+                  {u.name} {u.position ? `(${u.position})` : `(${u.role})`}
                 </option>
               ))}
             </select>

@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 
 export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: 'jwt',
   },
@@ -20,22 +21,40 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
 
-        const user = await db.user.findUnique({
-          where: { email: credentials.email },
-          include: { company: true },
-        })
+        try {
+          const email = credentials.email.trim().toLowerCase()
 
-        if (!user || !user.isActive) return null
+          const user = await db.user.findUnique({
+            where: { email },
+            include: { company: true },
+          })
 
-        const isValid = await bcrypt.compare(credentials.password, user.passwordHash)
-        if (!isValid) return null
+          if (!user) {
+            console.log(`[AUTH] User not found: ${email}`)
+            return null
+          }
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          companyId: user.companyId,
+          if (!user.isActive) {
+            console.log(`[AUTH] User account is inactive: ${email}`)
+            return null
+          }
+
+          const isValid = await bcrypt.compare(credentials.password, user.passwordHash)
+          if (!isValid) {
+            console.log(`[AUTH] Invalid password attempt for user: ${email}`)
+            return null
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            companyId: user.companyId,
+          }
+        } catch (error) {
+          console.error('[AUTH ERROR] Exception during authorize:', error)
+          return null
         }
       },
     }),

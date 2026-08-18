@@ -78,7 +78,7 @@ export default function ProjectDetailModal({
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <div className="bg-card border text-card-foreground rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="bg-card border text-card-foreground rounded-2xl lg:w-3xl md:w-xl w-lg w-full overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
         {/* Cover Image Header */}
         <div className="relative w-full h-48 bg-muted overflow-hidden flex items-center justify-center">
           {project.imageUrl ? (
