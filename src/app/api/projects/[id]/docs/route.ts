@@ -1,47 +1,54 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { parsePagination, paginatedResponse } from "@/lib/validations/pagination";
-import { listUsers, createUser } from "@/lib/services/user.service";
+import {
+  listProjectDocs,
+  createProjectDoc,
+} from "@/lib/services/project-doc.service";
 import { ServiceError } from "@/lib/services/ticket.service";
 import { ZodError } from "zod/v4";
 
-export async function GET(req: Request) {
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session)
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    const { searchParams } = new URL(req.url);
-    const pagination = parsePagination(searchParams);
-    const search = searchParams.get("search") || undefined;
-    const isOwner = session.user.role === "OWNER";
+    const { id: projectId } = await params;
+    const docs = await listProjectDocs(projectId, session.user);
 
-    const { users, total } = await listUsers(session.user.companyId, {
-      ...pagination,
-      search,
-      isOwner,
-    });
-
-    return NextResponse.json(
-      paginatedResponse(users, total, pagination.page, pagination.limit),
-    );
+    return NextResponse.json(docs);
   } catch (error) {
-    console.error("[GET /api/users]", error);
+    if (error instanceof ServiceError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.statusCode }
+      );
+    }
+    console.error("[GET /api/projects/[id]/docs]", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session)
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
+    const { id: projectId } = await params;
     const body = await req.json();
-    const newUser = await createUser(session.user.companyId, body, session.user);
+    const doc = await createProjectDoc(projectId, body, session.user);
 
-    return NextResponse.json(newUser, { status: 201 });
+    return NextResponse.json(doc, { status: 201 });
   } catch (error) {
     if (error instanceof ZodError) {
       return NextResponse.json(
@@ -55,7 +62,7 @@ export async function POST(req: Request) {
         { status: error.statusCode }
       );
     }
-    console.error("[POST /api/users]", error);
+    console.error("[POST /api/projects/[id]/docs]", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

@@ -187,17 +187,19 @@ export default function ProjectDetailModal({
             )}
           </div>
 
-          <Button
-            size="sm"
-            onClick={() => {
-              onClose()
-              router.push('/dashboard/tickets')
-            }}
-            className="flex items-center gap-1.5"
-          >
-            Lihat Tiket
-            <ArrowRight size={14} />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={() => {
+                onClose()
+                router.push(`/dashboard/projects/${project.id}`)
+              }}
+              className="flex items-center gap-1.5"
+            >
+              Buka Workspace
+              <ArrowRight size={14} />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

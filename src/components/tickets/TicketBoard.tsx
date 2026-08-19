@@ -19,8 +19,9 @@ import TicketCard from "./TicketCard";
 import CreateTicketModal from "./CreateTicketModal";
 import TicketDetailModal from "./TicketDetailModal";
 import { Button } from "@/components/ui/button";
-import { Plus, Bell } from "lucide-react";
+import { Plus, Bell, Activity, RefreshCw } from "lucide-react";
 import { hasPermission } from "@/lib/permissions";
+import { supabase } from "@/lib/supabase";
 
 export type TicketStatus = "TODO" | "IN_PROGRESS" | "REVIEW" | "PRIORITY" | "DONE";
 
@@ -59,19 +60,23 @@ interface Props {
   companyId: string;
   role: string;
   userId: string;
+  initialProjectId?: string;
 }
 
 export default function TicketBoard({
   companyId,
   role,
   userId,
+  initialProjectId,
 }: Props) {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [activeTicket, setActiveTicket] = useState<Ticket | null>(null);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<string>("all");
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(
+    initialProjectId || "all"
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sendingReminders, setSendingReminders] = useState(false);
@@ -165,6 +170,42 @@ export default function TicketBoard({
     fetchTickets();
   }, [fetchTickets, selectedProjectId]);
 
+  // Real-time Supabase Broadcast & Auto-Sync Polling
+  useEffect(() => {
+    const channelName = `company-${companyId}-tickets`;
+    const channel = supabase.channel(channelName);
+
+    channel
+      .on("broadcast", { event: "tickets-changed" }, () => {
+        fetchTickets();
+      })
+      .subscribe();
+
+    // Auto-polling sync setiap 8 detik jika tab aktif
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible" && !activeTicket) {
+        fetchTickets();
+      }
+    }, 8000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
+  }, [companyId, fetchTickets, activeTicket]);
+
+  const notifyRealtimeChange = useCallback(() => {
+    try {
+      supabase.channel(`company-${companyId}-tickets`).send({
+        type: "broadcast",
+        event: "tickets-changed",
+        payload: { timestamp: Date.now() },
+      });
+    } catch (e) {
+      console.warn("Realtime broadcast notice failed:", e);
+    }
+  }, [companyId]);
+
   const handleDragStart = (event: DragStartEvent) => {
     const ticket = tickets.find((t) => t.id === event.active.id);
     if (ticket) setActiveTicket(ticket);
@@ -213,6 +254,9 @@ export default function TicketBoard({
       if (!res.ok) {
         throw new Error("Gagal mengupdate status ticket");
       }
+
+      // Broadcast update ke semua anggota tim lain yang sedang membuka board
+      notifyRealtimeChange();
     } catch {
       // Rollback on failure
       setTickets((prev) =>
@@ -239,48 +283,65 @@ export default function TicketBoard({
         </div>
       )}
 
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-            Filter Proyek:
-          </label>
-          <select
-            className="px-3 py-1.5 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring min-w-[200px]"
-            value={selectedProjectId}
-            onChange={(e) => setSelectedProjectId(e.target.value)}
-          >
-            <option value="all">Semua Proyek</option>
-            <option value="unassigned">Tanpa Proyek</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] text-zinc-500 font-medium whitespace-nowrap">
+              Filter:
+            </span>
+            <select
+              className="px-2.5 py-1 rounded-md border border-zinc-800 bg-zinc-900 text-xs text-zinc-200 focus:outline-none focus:ring-1 focus:ring-zinc-700 min-w-[180px]"
+              value={selectedProjectId}
+              onChange={(e) => setSelectedProjectId(e.target.value)}
+            >
+              <option value="all">Semua Proyek</option>
+              <option value="unassigned">Tanpa Proyek</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Real-time Live Indicator */}
+          <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono text-zinc-400 bg-zinc-900 border border-zinc-800">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-zinc-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-zinc-300"></span>
+            </span>
+            <span>LIVE SYNC</span>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
+            size="sm"
             onClick={handleSendDeadlineReminders}
             disabled={sendingReminders}
             title="Kirim email pengingat untuk semua tiket yang mendekati deadline"
+            className="h-7 px-2.5 text-xs border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-300 hover:text-zinc-100 font-medium"
           >
-            <Bell size={16} className={`mr-2 ${sendingReminders ? "animate-spin" : ""}`} />
+            <Bell size={12} className={`mr-1.5 ${sendingReminders ? "animate-spin" : ""}`} />
             {sendingReminders ? "Mengirim..." : "Pengingat Deadline"}
           </Button>
 
           {canCreate && (
-            <Button onClick={() => setShowModal(true)}>
-              <Plus size={16} className="mr-2" />
-              Buat Ticket
+            <Button
+              size="sm"
+              onClick={() => setShowModal(true)}
+              className="h-7 px-3 text-xs bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-semibold"
+            >
+              <Plus size={12} className="mr-1" />
+              Buat Tiket
             </Button>
           )}
         </div>
       </div>
 
       {reminderNotification && (
-        <div className="mb-4 px-4 py-3 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 text-sm border border-blue-500/20">
+        <div className="mb-3 px-3 py-2 rounded-lg bg-zinc-900 text-zinc-300 text-xs border border-zinc-800">
           {reminderNotification}
         </div>
       )}
@@ -329,6 +390,7 @@ export default function TicketBoard({
           onCreated={() => {
             setShowModal(false);
             fetchTickets();
+            notifyRealtimeChange();
           }}
         />
       )}

@@ -37,6 +37,7 @@ model Project {
 
   company     Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
   tickets     Ticket[]
+  docs        ProjectDoc[]
 
   @@index([companyId])
 }
@@ -64,6 +65,7 @@ model User {
   assignedTickets Ticket[]        @relation("AssignedTickets")
   createdTickets  Ticket[]        @relation("CreatedTickets")
   ticketComments  TicketComment[]
+  projectDocs     ProjectDoc[]
   sessions        Session[]
 }
 
@@ -155,4 +157,37 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// ==================== PROJECT DOCS (WORKSPACE) ====================
+model ProjectDoc {
+  id          String       @id @default(cuid())
+  projectId   String
+  parentId    String?
+  title       String       @default("Tanpa Judul")
+  coverUrl    String?
+  content     String?      @db.Text
+  category    DocCategory  @default(GENERAL)
+  order       Int          @default(0)
+  createdById String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent      ProjectDoc?  @relation("DocHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children    ProjectDoc[] @relation("DocHierarchy")
+  createdBy   User         @relation(fields: [createdById], references: [id])
+
+  @@index([projectId])
+  @@index([parentId])
+}
+
+enum DocCategory {
+  GENERAL
+  DOCUMENTATION
+  MARKETING
+  LOG
+  ROADMAP
+  VISION
+  MEETING_NOTES
 }
