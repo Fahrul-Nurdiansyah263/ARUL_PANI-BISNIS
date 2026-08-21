@@ -6,12 +6,22 @@ const supabaseUrl =
   "https://dcmtnnzzbejpcibibgnw.supabase.co";
 
 const supabaseKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   process.env.SUPABASE_SECRET_KEY ||
   process.env.SUPABASE_SERVICE_ROLE_KEY ||
   process.env.SUPABASE_PUBLISHABLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  "dummy-key-for-dev";
+  "";
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const isSupabaseConfigured = Boolean(
+  supabaseUrl &&
+    supabaseKey &&
+    supabaseKey !== "dummy-key-for-dev" &&
+    supabaseKey.length > 20
+);
+
+export const supabase = createClient(
+  supabaseUrl,
+  supabaseKey || "dummy-key-for-dev"
+);
 
 

@@ -21,7 +21,7 @@ import TicketDetailModal from "./TicketDetailModal";
 import { Button } from "@/components/ui/button";
 import { Plus, Bell, Activity, RefreshCw } from "lucide-react";
 import { hasPermission } from "@/lib/permissions";
-import { supabase } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 export type TicketStatus = "TODO" | "IN_PROGRESS" | "REVIEW" | "PRIORITY" | "DONE";
 
@@ -172,14 +172,18 @@ export default function TicketBoard({
 
   // Real-time Supabase Broadcast & Auto-Sync Polling
   useEffect(() => {
-    const channelName = `company-${companyId}-tickets`;
-    const channel = supabase.channel(channelName);
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    channel
-      .on("broadcast", { event: "tickets-changed" }, () => {
-        fetchTickets();
-      })
-      .subscribe();
+    if (isSupabaseConfigured) {
+      const channelName = `company-${companyId}-tickets`;
+      channel = supabase.channel(channelName);
+
+      channel
+        .on("broadcast", { event: "tickets-changed" }, () => {
+          fetchTickets();
+        })
+        .subscribe();
+    }
 
     // Auto-polling sync setiap 8 detik jika tab aktif
     const interval = setInterval(() => {
@@ -189,12 +193,15 @@ export default function TicketBoard({
     }, 8000);
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
       clearInterval(interval);
     };
   }, [companyId, fetchTickets, activeTicket]);
 
   const notifyRealtimeChange = useCallback(() => {
+    if (!isSupabaseConfigured) return;
     try {
       supabase.channel(`company-${companyId}-tickets`).send({
         type: "broadcast",
